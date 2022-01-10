@@ -1,5 +1,5 @@
 import json
-
+from data_coordinates import Data_coordinates
 class Msg_dog_matchingAI(object):
     
     def __init__(self, start_cord, start_time):
