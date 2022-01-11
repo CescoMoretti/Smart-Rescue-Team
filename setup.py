@@ -87,7 +87,7 @@ setup(
     #INSERIRE QUI GLI ESEGUIBILI DEL PROGETTO
     entry_points={
         'console_scripts': [
-            'test = dog.test:main',
+            'test = dog.test_dog:main',
         ]
     },
 )

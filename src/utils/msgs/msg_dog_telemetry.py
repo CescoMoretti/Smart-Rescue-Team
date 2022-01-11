@@ -1,6 +1,6 @@
 import json
 import time
-from data_structures.data_coordinates import Data_coordinates
+from utils.data_structures.data_coordinates import Data_coordinates
 
 class Msg_dog_telemetry(object):
     
