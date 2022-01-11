@@ -1,7 +1,7 @@
 from paho.mqtt import client as mqtt_client
 import time
 
-
+#classe che pubblica i messaggi, gestisce anche la riconnessione in caso di comunicazione fallita
 class Publisher_mqtt:
     def __init__(self, broker, port, topic, client_id):
         self.broker =broker
