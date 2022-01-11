@@ -10,7 +10,7 @@ def main():
     #psw = 'public'
 
     cane1 = Dog(broker, port, client_id)
-    cane1.fun_prova()
+    cane1.send_data()
 
 if __name__ == "__main__":
     main()

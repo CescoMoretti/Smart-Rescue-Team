@@ -18,7 +18,7 @@ class Dog:
         self.publisher_tel = Publisher_mqtt( broker, port, self.topic_tel, client_id)
         
         
-    def fun_prova(self):
+    def  send_data(self):
         print("entrata")
         msg = Msg_dog_telemetry(self.read_telemetry(), self.read_battery())   
         print("messaggio")   
