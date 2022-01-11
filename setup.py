@@ -83,6 +83,8 @@ setup(
     setup_requires=[
         'pytest-runner',
     ],
+
+    #INSERIRE QUI GLI ESEGUIBILI DEL PROGETTO
     entry_points={
         'console_scripts': [
             'test = dog.test:main',
