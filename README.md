@@ -5,7 +5,7 @@ To run go in the project folder and run:
 * setup.py build
 * setup.py install
 
-Layout of the project
+# Layout of the project
 
 ![alt text](https://github.com/CescoMoretti/Smart-Rescue-Team/blob/master/Schema%20di%20Base.png?raw=true)
 
