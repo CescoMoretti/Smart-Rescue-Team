@@ -1,9 +1,12 @@
+from pathlib import Path
 import sys
-sys.path.append(".")
+path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
+sys.path.insert(0, path)
 
 from pubblisher_mqtt import Publisher_mqtt
 from data_structures.msg_dog_telemetry import Msg_dog_telemetry
 from data_structures.data_coordinates import Data_coordinates
+
 import time
 
 class Dog:
@@ -16,16 +19,17 @@ class Dog:
         
         
     def fun_prova(self):
-        
-        msg = Msg_dog_telemetry(self.read_telemetry(), self.read_battery)      
+        print("entrata")
+        msg = Msg_dog_telemetry(self.read_telemetry(), self.read_battery())   
+        print("messaggio")   
         while True:            
-            self.publisher_tel.publish(msg)
+            self.publisher_tel.publish(msg.get_json_from_dict())
             time.sleep(2)
     
-    def read_telemetry():
+    def read_telemetry(self):
         telemetry = Data_coordinates(90,30)
         return telemetry
-    def read_battery():
+    def read_battery(self):
         return 50
 
 
