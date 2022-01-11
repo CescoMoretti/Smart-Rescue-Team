@@ -1,6 +1,10 @@
 # Smart-Rescue-Team
 Progetto per l'esame di IOT and 3D intelligent systems
 
+To run go in the project folder and run: 
+* setup.py build
+* setup.py install
+
 ![alt text](https://github.com/CescoMoretti/Smart-Rescue-Team/blob/master/Schema%20di%20Base.png?raw=true)
 
 
@@ -20,6 +24,7 @@ Cane:
 * Lora --> MQTT --> paho-mqtt
 
 
+
 Broker - squadra di soccorso:
 * Come mettere insieme tutti i dati?
 * Gestire comunicazione in caso di segnale disturbato
@@ -27,7 +32,6 @@ Broker - squadra di soccorso:
 * Secondo filtro di machine learning per le eventuali immagini inviate dai cani?
 * Internet (4g?) --> su HTTP 
 * Visualizza mappa tramite web app --> usare un secondo oggetto IoT? (tipo tablet)
-
 
 
 Cloud:
