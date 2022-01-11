@@ -1,3 +1,6 @@
+import sys
+sys.path.append(".")
+
 from pubblisher_mqtt import Publisher_mqtt
 from data_structures.msg_dog_telemetry import Msg_dog_telemetry
 from data_structures.data_coordinates import Data_coordinates
