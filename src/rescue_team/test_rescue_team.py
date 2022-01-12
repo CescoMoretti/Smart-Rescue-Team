@@ -3,7 +3,7 @@ import random
 
 
 def main():
-    broker = 'test.mosquitto.org'
+    broker = 'localhost'
     port = 1883
     client_id = f'dog-{random.randint(0, 1000)}'
     #user = 'emqx'

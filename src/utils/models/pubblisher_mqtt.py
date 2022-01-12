@@ -29,7 +29,7 @@ class Publisher_mqtt:
             if self.first_connection:
                 print("Connessione in corso...") 
                 #client.username_pw_set(self.user, self.psw)       
-                self.client.connect("localhost", keepalive = KEEP_ALIVE_TIME)
+                self.client.connect(self.broker, keepalive = KEEP_ALIVE_TIME)
                 self.first_connection = False
                 self.connection_status = True
             else:

@@ -11,8 +11,6 @@ class Subscriber_mqtt():
         self.topic = topic
         self.client_id = client_id
         self.connection_status = False        
-        if type(callback_fun) != types.FunctionType:
-           raise Exception("Callback must be a method")
         self.callbak_fun = callback_fun
 
         self.client = mqtt_client.Client(self.client_id)               
@@ -22,14 +20,22 @@ class Subscriber_mqtt():
     def connect(self):
         self.client.connect(self.broker, port=self.port)  
         self.client.loop_start()
-        while self.connection_status != True:    #Wait for connection
-            time.sleep(0.1)
+        time.sleep(2)
         self.client.subscribe(self.topic)
 
-    def on_connect():
-        print("Successful connection to the Broker!")
-    def on_message(self):
-        self.callback_fun()
+    def disconnect(self):
+        self.client.disconnect()
+        self.client.loop_stop()
+
+ 
+    def on_connect(self, client, userdata, flags, rc):
+        print("Connected with result code "+str(rc))
+        
+        #self.client.subscribe(self.topic)
+
+    def on_message(self, client, userdata, msg):
+        print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
+        self.callbak_fun()
 '''
 def prova():
     pass

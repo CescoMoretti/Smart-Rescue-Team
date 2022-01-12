@@ -18,8 +18,8 @@ class Dog:
         self.broker = broker
         self.port = port
         self.client_id = client_id        
-        self.topic_tel = f'{client_id}/telemetry'  
-        self.topic_ai = f'{client_id}/ai_result'       
+        self.topic_tel = f'smart_rescue_team/{client_id}/telemetry'  
+        self.topic_ai = f'smart_rescue_team/{client_id}/ai_result'       
         self.publisher_tel = Publisher_mqtt( broker, port, self.topic_tel, f'{self.client_id}_publisher_tel')
         self.publisher_ai = Publisher_mqtt( broker, port, self.topic_ai, f'{self.client_id}_publisher_ai')
         
