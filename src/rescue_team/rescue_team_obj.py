@@ -14,7 +14,7 @@ class Rescue_team_obj:
         self.port = port
         self.client_id = client_id        
         self.topic_tel = 'smart_rescue_team/+/telemetry'         
-        self.subscriber_tel = Subscriber_mqtt(self.broker, self.port, self.topic_tel, self.client_id, self.callback_tel)
+        self.subscriber_tel = Subscriber_mqtt(self.broker, self.port, self.topic_tel, self.client_id, self.callback_dog_tel)
 
     def start(self):
         self.send_data_telemetry
@@ -34,7 +34,7 @@ class Rescue_team_obj:
         #TODO capire come mandare i dati (probabilmente staccare un thread)
         pass
 
-    def callback_tel(self):
+    def callback_dog_tel(self):
         #TODO
         pass
 
