@@ -3,7 +3,7 @@ import sys
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 
-from pubblisher_mqtt import Publisher_mqtt
+from utils.models.pubblisher_mqtt import Publisher_mqtt
 from utils.msgs.msg_dog_telemetry import Msg_dog_telemetry
 from utils.msgs.msg_dog_matchingAI import Msg_dog_matchingAI
 from utils.data_structures.data_coordinates import Data_coordinates
@@ -14,7 +14,7 @@ import time
 #classe che implementa tutti i comportamenti dell'oggettio iot cane
 
 class Dog:
-    def __init__(self, broker, port,  client_id):
+    def __init__(self, broker, port, client_id):
         self.broker = broker
         self.port = port
         self.client_id = client_id        
@@ -47,9 +47,11 @@ class Dog:
             ai_thread.join()
     
     def read_coordinates(self):
+        #TODO
         telemetry = Data_coordinates(90,30)
         return telemetry
     def read_battery(self):
+        #TODO
         return 50
 
 
