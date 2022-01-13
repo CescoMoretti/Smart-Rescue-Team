@@ -30,7 +30,7 @@ class Dog:
         time.sleep(2)
 
     def  send_data_ai(self):          
-        msg = Msg_dog_matchingAI(self.read_coordinates())             
+        msg = Msg_dog_matchingAI(self.read_coordinates(), self.get_result_ai())             
         self.publisher_ai.publish(msg.get_json_from_dict())
         time.sleep(2)
     
@@ -53,5 +53,6 @@ class Dog:
     def read_battery(self):
         #TODO
         return 50
-
+    def get_result_ai(self):
+        return "ack"
 
