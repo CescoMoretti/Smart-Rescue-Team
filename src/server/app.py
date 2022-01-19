@@ -25,6 +25,9 @@ class Db_data_model(db.Model):
     timestamp = db.Column(db.Integer)
     battery =   db.Column(db.Integer)
 
+    def __repr__(self):
+        return '<Name %r>' %self.names
+
 
 #Create a route decorator
 @app.route('/')
@@ -43,6 +46,6 @@ def add_data():
     data = Db_data_model(name= "1", type = "team", gps_lat = 12, gps_long = 145,)
     db.session.add(data)
     db.session.commit()
-    istances = Db_data_model.query.order_by(Db_data_model.id)
-    print(istances)
+    istances = Db_data_model.query.order_by(Db_data_model.name)
+    
     return render_template("add_data.html", istances=istances)
