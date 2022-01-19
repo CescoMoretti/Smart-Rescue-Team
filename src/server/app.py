@@ -49,3 +49,18 @@ def add_data():
     istances = Db_data_model.query.order_by(Db_data_model.name)
     
     return render_template("add_data.html", istances=istances)
+
+
+
+
+#Error pages
+
+#Invalid page
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 400
+
+#Internal server error
+@app.errorhandler(500)
+def page_not_found(e):
+    return render_template("500.html"), 500
