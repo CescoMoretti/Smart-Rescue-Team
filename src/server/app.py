@@ -1,8 +1,14 @@
 from flask import Flask, render_template
+from flask_sqlalchemy import SQLAlchemy
 
 
 #create a flask instance
 app = Flask(__name__)
+#App database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+#Initialize database
+db = SQLAlchemy(app)
+
 
 #Create a route decorator
 @app.route('/')
