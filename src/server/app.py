@@ -35,10 +35,6 @@ class Db_data_model(db.Model):
 def index():
     return render_template("index.html")
 
-@app.route('/user/<name>')
-
-def user(name):
-    return render_template("user.html", user_name=name)
 
 @app.route('/data/add', methods=['GET', 'POST'])
 
