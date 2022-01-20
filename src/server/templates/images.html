@@ -1,0 +1,21 @@
+{% extends 'base.html'%}
+
+
+{% block content%}    
+    {% if name %}
+        <h1>Immagine</h1>
+    {% else %}
+        <h1>Inserire Mappa</h1>
+        {{name}}
+        <br/>
+        <form method="POST">
+            {{form.hidden_tag()}} 
+            {{form.name.label}}<br/>            
+            {{form.name()}}<br/><br/>
+            
+            <br/><br/>
+            {{form.submit()}}
+        </form>       
+
+    {% endif %} 
+{% endblock %}
