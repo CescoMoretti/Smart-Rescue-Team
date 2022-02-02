@@ -4,12 +4,13 @@ import sys
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 
-from pickle import GET
-from flask import Flask, render_template
+from flask_uploads import configure_uploads, IMAGES, UploadSet
+from flask import Flask, render_template, flash
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
-from flask_wtf.file import FileField, FileRequired
-from wtforms.validators import InputRequired, DataRequired
+from wtforms import  FileField
+from flask_wtf.file import FileRequired, FileAllowed , FileField
+
+
 from flask_sqlalchemy import SQLAlchemy
 
 
@@ -17,13 +18,16 @@ from flask_sqlalchemy import SQLAlchemy
 #create a flask instance
 app = Flask(__name__)
 #Key for forms
-
-app.config['SECRET_KEY'] = "password" #In teoria andrebbe nascosta
+app.config['SECRET_KEY'] = "password" #In teoria andrebbe nascosta TODO capire se implementare sicurezza
+#setting upload
+app.config['UPLOADED_IMAGES_DEST'] = 'maps'
+images_upload_set = UploadSet('images', IMAGES)
+configure_uploads(app, images_upload_set)
 #Create form class
 class Image_form(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    #image = FileField('submit image', validators=[FileRequired()]) # IMAGE
-    submit = SubmitField("Add Map")
+    #name = StringField('Name', validators=[DataRequired()])
+    image = FileField('Map', validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
+    
 
 
 
@@ -66,19 +70,20 @@ def add_data():
 @app.route('/images', methods=['GET', 'POST'])
 
 def add_image():  
-    name = None
-    #image = None
+    path_map = None
+    image = None
+    filename = None
     form = Image_form()
     if form.validate_on_submit():
-        print(form.name.data)
-        name = form.name.data
-        #image = form.image.data
-        form.name.data = ''
+        filename = images_upload_set.save(form.image.data)
+        path_map = images_upload_set.path(filename)
+        image = filename        
         
 
-    return render_template("images.html",     
-                            name = name,
-                            #image = image,
+    return render_template("images.html",
+                            filename = filename,     
+                            path_map = path_map,
+                            image = image,
                             form = form)
 
 

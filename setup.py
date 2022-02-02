@@ -76,6 +76,7 @@ setup(
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
         'Flask==1.1.2',
         'Flask-SQLAlchemy==2.4.4',
+        'Flask-Uploads==0.2.1',
     ],
     extras_require={
         # eg:

@@ -2,19 +2,24 @@
 
 
 {% block content%}    
-    {% if name %}
-        <h1>Immagine</h1>
+    {% if image %}
+        <h2>Mappa caricata correttamente!</h2>
+        <div>
+            <h3>  </h3>
+            
+            <img src='{{path_map}}'>
+        </div>
     {% else %}
         <h1>Inserire Mappa</h1>
-        {{name}}
+        {{image}}
         <br/>
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             {{form.hidden_tag()}} 
-            {{form.name.label}}<br/>            
-            {{form.name()}}<br/><br/>
+            {{form.image.label}}<br/>            
+            {{form.image()}}<br/><br/>
             
             <br/><br/>
-            {{form.submit()}}
+            <button type="submit"> Upload</button>
         </form>       
 
     {% endif %} 
