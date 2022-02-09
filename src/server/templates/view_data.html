@@ -1,0 +1,12 @@
+{% extends 'base.html'%}
+
+{% block content%}
+
+    <h1>Database</h1>
+
+    {% for istance in instances %}
+        {{istance.id}}: {{istance.name}} - {{istance.msg_type}} - {{istance.device_type}} - {{istance.gps_lat}} - {{istance.gps_long}} - {{istance.timestamp}} <br/> 
+    {% endfor %}
+
+
+{% endblock %}

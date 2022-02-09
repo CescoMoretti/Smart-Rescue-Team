@@ -25,12 +25,12 @@ class Dog:
         
         
     def  send_data_telemetry(self): 
-        msg = Msg_dog_telemetry(self.read_coordinates(), self.read_battery())             
+        msg = Msg_dog_telemetry(self.client_id, self.read_coordinates(), self.read_battery())             
         self.publisher_tel.publish(msg.get_json_from_dict())
         time.sleep(2)
 
     def  send_data_ai(self):          
-        msg = Msg_dog_matchingAI(self.read_coordinates(), self.get_result_ai())             
+        msg = Msg_dog_matchingAI(self.client_id, self.read_coordinates(),self.get_result_ai())             
         self.publisher_ai.publish(msg.get_json_from_dict())
         time.sleep(2)
     
