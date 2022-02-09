@@ -77,6 +77,8 @@ setup(
         'Flask==1.1.2',
         'Flask-SQLAlchemy==2.4.4',
         'Flask-Uploads==0.2.1',
+        'numpy==1.19.2'
+        'opencv-python==4.0.1'
     ],
     extras_require={
         # eg:

@@ -1,5 +1,5 @@
 from dog_obj import Dog
-import random
+import random, cv2
 
 
 def main():
@@ -11,7 +11,9 @@ def main():
     
     
     cane1 = Dog(broker, port, client_id)
-    cane1.send_data()
+    imgpath = 'imgs/IMG_6047.JPG'
+    img =  cv2.imread('imgs/IMG_6047.JPG')
+    cane1.send_data(img)
 
 if __name__ == "__main__":
     main()
