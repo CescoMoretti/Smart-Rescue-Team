@@ -23,7 +23,7 @@ class Dog:
         self.topic_ai = f'smart_rescue_team/{client_id}/ai_result'       
         self.publisher_tel = Publisher_mqtt( broker, port, self.topic_tel, f'{self.client_id}_publisher_tel')
         self.publisher_ai = Publisher_mqtt( broker, port, self.topic_ai, f'{self.client_id}_publisher_ai')
-        self.detector = Detector('.\YOLOv3\yolov3-tiny.weights', '.\YOLOv3\yolov3-tiny.cfg', '.\YOLOv3\coco.names')
+        #self.detector = Detector('.\YOLOv3\yolov3-tiny.weights', '.\YOLOv3\yolov3-tiny.cfg', '.\YOLOv3\coco.names')
         
     def  send_data_telemetry(self): 
         msg = Msg_dog_telemetry(self.client_id, self.read_coordinates(), self.read_battery())             
@@ -39,14 +39,14 @@ class Dog:
     def send_data(self, img):
         tele_thread = Thread_model('telemetry', self.send_data_telemetry)
         tele_thread.start()
-        ai_thread = Thread_model('ai_data', self.detector.detectMissingPeople(img))
-        ai_thread.start()
+        #ai_thread = Thread_model('ai_data', self.detector.detectMissingPeople(img))
+        #ai_thread.start()
         try:
             while True:
                 time.sleep(2)
         except KeyboardInterrupt:
             tele_thread.join()
-            ai_thread.join()
+            #ai_thread.join()
     
     def read_coordinates(self):
         #TODO
