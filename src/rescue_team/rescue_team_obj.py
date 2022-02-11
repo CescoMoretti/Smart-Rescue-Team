@@ -13,8 +13,11 @@ class Rescue_team_obj:
         self.broker = broker
         self.port = port
         self.client_id = client_id        
-        self.topic_tel = 'smart_rescue_team/+/telemetry'         
+        self.topic_tel = 'smart_rescue_team/+/telemetry'    
+        self.topic_tel = 'smart_rescue_team/+/ai_result'       
         self.subscriber_tel = Subscriber_mqtt(self.broker, self.port, self.topic_tel, self.client_id, self.callback_dog_tel)
+        self.subscriber_ai = Subscriber_mqtt(self.broker, self.port, self.topic_tel, self.client_id, self.callback_dog_ai)
+
 
     def start(self):
         self.send_data_telemetry
@@ -37,6 +40,11 @@ class Rescue_team_obj:
     def callback_dog_tel(self):
         #TODO
         pass
+
+    def callback_dog_ai(self):
+        #with open("sample.jpg", "wb") as f2:
+            #f2.write(binascii.a2b_base64(data))
+        print(self)
 
     def read_coordinates(self):
         #TODO

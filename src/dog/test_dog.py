@@ -1,6 +1,7 @@
 from dog_obj import Dog
-import random, cv2
-
+import random
+import threading
+from utils.models.thread_main import Thread_main
 
 def main():
     broker = 'localhost'
@@ -9,11 +10,8 @@ def main():
     #user = 'emqx'
     #psw = 'public'
     
-    
     cane1 = Dog(broker, port, client_id)
-    imgpath = 'imgs/IMG_6047.JPG'
-    img =  cv2.imread('imgs/IMG_6047.JPG')
-    cane1.send_data(img)
+    cane1.activate_dog()
 
 if __name__ == "__main__":
     main()

@@ -11,10 +11,17 @@ class Detector():
         self.yolo_net = cv2.dnn.readNet(self.weights_path, self.cfg_path)
         with open(self.l_names, 'r') as f:
             self.classes = f.read().splitlines()
+        self.progressiveId = 0
 
 
-    def detectMissingPeople(self, img):
+    def detectMissingPeople(self, imgpath):
+
+        self.progressiveId += 1
+        detected = False
+        img =  cv2.imread(imgpath)
         blob = cv2.dnn.blobFromImage(img, 1/255, (320,320), (0,0,0), swapRB=True, crop=False)
+
+        print(blob.shape)
 
         self.yolo_net.setInput(blob)
         output_layers_name = self.yolo_net.getUnconnectedOutLayersNames()
@@ -23,6 +30,8 @@ class Detector():
         bounding = []
         confidences = []
         class_ids = []
+
+        print(output_layer)
 
         for output in output_layer:
             for detection in output:
@@ -49,19 +58,16 @@ class Detector():
         font = cv2.FONT_HERSHEY_COMPLEX
         colors = np.random.uniform(0, 255, size=(len(bounding), 3))
 
-        for i in indexes.flatten():
-            x, y, w, h = bounding[i]
+        if len(indexes) > 0:
+            detected = not detected
+            for i in indexes.flatten():
+                x, y, w, h = bounding[i]
+                label = str(self.classes[class_ids[i]])
+                confid = str(round(confidences[i], 2))
+                color = colors[i]
 
-            label = str(self.classes[class_ids[i]])
-            confid = str(round(confidences[i], 2))
-            color = colors[i]
+                cv2.rectangle(img, (x, y), (x+w, y+h), color, 3)
+                cv2.putText(img, label + ' ' + confid, (x, y+20), font, 2, (255, 255, 255), 3)
 
-            cv2.rectangle(img, (x, y), (x+w, y+h), color, 3)
-            cv2.putText(img, label + ' ' + confid, (x, y+20), font, 2, (255, 255, 255), 3)
-
-        if len(bounding) == 0:
-            return None
-        else:
-            return img
-    
-
+        cv2.imwrite('Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', img)
+        return self.progressiveId, 'Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', detected
