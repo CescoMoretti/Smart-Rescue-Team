@@ -30,7 +30,7 @@ class Dog:
         self.topic_ai = f'smart_rescue_team/{client_id}/ai_result'       
         self.publisher_tel = Publisher_mqtt( broker, port, self.topic_tel, f'{self.client_id}_publisher_tel')
         self.publisher_ai = Publisher_mqtt( broker, port, self.topic_ai, f'{self.client_id}_publisher_ai')
-        #self.detector = Detector('.\YOLOv3\yolov3-tiny.weights', '.\YOLOv3\yolov3-tiny.cfg', '.\YOLOv3\coco.names')
+        self.detector = Detector('.\YOLOv3\yolov3-tiny.weights', '.\YOLOv3\yolov3-tiny.cfg', '.\YOLOv3\coco.names')
         
     def send_data_telemetry(self): 
         msg = Msg_dog_telemetry(self.client_id, self.read_coordinates(), self.read_battery())             
@@ -49,11 +49,7 @@ class Dog:
         time.sleep(2)
 
     def simulate_camera(self):
-        l = len(imgs) - 1
-        r = random.randint(0, l)
-        a = imgs[r]
-        print(r)
-        print(a)
+        a = imgs[random.randint(0, (len(imgs) - 1))]
         shutil.copyfile(a, 'Smart-Rescue-Team/src/dog/camera_stream_simulator.jpg')
         time.sleep(2)
     
