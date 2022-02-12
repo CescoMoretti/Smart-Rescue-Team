@@ -1,12 +1,13 @@
 from charset_normalizer import detect
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2
+import cv2, os
 
 
 class Detector():
 
     def __init__(self, weights_path, cfg_path, l_names_path):
+        self.this_path = os.getcwd()
         self.weights_path = weights_path
         self.cfg_path = cfg_path
         self.l_names_path = l_names_path
@@ -69,5 +70,5 @@ class Detector():
                 text = "{}: {:.4f}".format(self.classes[class_ids[i]], confidences[i])
                 cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
 
-        cv2.imwrite('Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', frame)
-        return self.progressiveId, 'Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', detected
+        cv2.imwrite(self.this_path+'/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', frame)
+        return self.progressiveId, self.this_path+'/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', detected
