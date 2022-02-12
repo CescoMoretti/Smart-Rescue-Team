@@ -46,7 +46,7 @@ class Rescue_team_obj:
 
     def callback_dog_tel(self, data):        
         r = requests.post("http://127.0.0.1:5000/data/add/"+ data)
-        print("data receved sended to server: " + r.status_code, r.reason)
+        print("data receved sended to server: " + str(r.status_code), r.reason)
 
     def callback_dog_ai(self, data):
         r = requests.post("http://127.0.0.1:5000/data/add/"+ data)
