@@ -18,8 +18,8 @@ import shutil
 import time
 
 #classe che implementa tutti i comportamenti dell'oggetto iot cane
-imgpath = 'Smart-Rescue-Team/src/dog/camera_stream_simulator.jpg'
-imgs = glob.glob('Smart-Rescue-Team/src/dog/imgs/*.jpg')
+imgpath = 'C:/Users/cesco/OneDrive/Desktop/iot/Smart-Rescue-Team/src/dog/camera_stream_simulator.jpg'
+imgs = glob.glob('C:/Users/cesco/OneDrive/Desktop/iot/Smart-Rescue-Team/src/dog/imgs/*.jpg')
 
 class Dog:
     def __init__(self, broker, port, client_id):
@@ -30,7 +30,9 @@ class Dog:
         self.topic_ai = f'smart_rescue_team/{client_id}/ai_result'       
         self.publisher_tel = Publisher_mqtt( broker, port, self.topic_tel, f'{self.client_id}_publisher_tel')
         self.publisher_ai = Publisher_mqtt( broker, port, self.topic_ai, f'{self.client_id}_publisher_ai')
-        self.detector = Detector('.\YOLOv3\yolov3-tiny.weights', '.\YOLOv3\yolov3-tiny.cfg', '.\YOLOv3\coco.names')
+        self.detector = Detector(r'C:\Users\cesco\OneDrive\Desktop\iot\Smart-Rescue-Team\src\dog\YOLOv3\yolov3-tiny.weights',
+                                 r'C:\Users\cesco\OneDrive\Desktop\iot\Smart-Rescue-Team\src\dog\YOLOv3\yolov3-tiny.cfg',
+                                 r'C:\Users\cesco\OneDrive\Desktop\iot\Smart-Rescue-Team\src\dog\YOLOv3\coco.names')
         
     def send_data_telemetry(self): 
         msg = Msg_dog_telemetry(self.client_id, self.read_coordinates(), self.read_battery())             
@@ -50,7 +52,7 @@ class Dog:
 
     def simulate_camera(self):
         a = imgs[random.randint(0, (len(imgs) - 1))]
-        shutil.copyfile(a, 'Smart-Rescue-Team/src/dog/camera_stream_simulator.jpg')
+        shutil.copyfile(a, r'C:/Users/cesco/OneDrive/Desktop/iot/Smart-Rescue-Team/src/dog/camera_stream_simulator.jpg')
         time.sleep(2)
     
 

@@ -35,8 +35,5 @@ class Subscriber_mqtt():
 
     def on_message(self, client, userdata, msg):
         print(f"Received `{msg.payload.decode()}` from `{msg.topic}` topic")
-        self.callbak_fun()
-'''
-def prova():
-    pass
-test = Subscriber_mqtt("prova", "prova", "prova","prova", prova)'''
+        print(str(msg.payload.decode()))
+        self.callbak_fun(str(msg.payload.decode()))

@@ -13,8 +13,12 @@ class Msg_team_telemetry(object):
         self.msg_type = "telemetry"
         self.device_type = "team"
         self.gps_cord = start_cord.get_dict()
-        self.timestamp = time.time        
-        self.data = {"name" : name, "msg_type" : self.msg_type, "device_type" : self.device_type ,"gps" : self.gps_cord, "timestamp" : self.timestamp }
+        self.timestamp = time.time()       
+        self.data = {"name" : name,
+                     "msg_type" : self.msg_type,
+                     "device_type" : self.device_type ,
+                     "gps" : self.gps_cord, 
+                     "timestamp" : self.timestamp }
     
     def get_json_from_var(self):        
         json_data = json.dumps(self.data)

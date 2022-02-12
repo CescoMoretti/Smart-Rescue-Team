@@ -1,7 +1,5 @@
 from dog_obj import Dog
 import random
-import threading
-from utils.models.thread_main import Thread_main
 
 def main():
     broker = 'localhost'

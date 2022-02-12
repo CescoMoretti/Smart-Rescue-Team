@@ -21,7 +21,7 @@ class Detector():
         img =  cv2.imread(imgpath)
         blob = cv2.dnn.blobFromImage(img, 1/255, (320,320), (0,0,0), swapRB=True, crop=False)
 
-        print(blob.shape)
+        #print(blob.shape)
 
         self.yolo_net.setInput(blob)
         output_layers_name = self.yolo_net.getUnconnectedOutLayersNames()
@@ -31,7 +31,7 @@ class Detector():
         confidences = []
         class_ids = []
 
-        print(output_layer)
+        #print(output_layer)
 
         for output in output_layer:
             for detection in output:
@@ -69,5 +69,5 @@ class Detector():
                 cv2.rectangle(img, (x, y), (x+w, y+h), color, 3)
                 cv2.putText(img, label + ' ' + confid, (x, y+20), font, 2, (255, 255, 255), 3)
 
-        cv2.imwrite('Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', img)
-        return self.progressiveId, 'Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', detected
+        cv2.imwrite(r'C:/Users/cesco/OneDrive/Desktop/iot/Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', img)
+        return self.progressiveId, r'C:/Users/cesco/OneDrive/Desktop/iot/Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', detected

@@ -18,8 +18,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 #create a flask instance
 app = Flask(__name__)
-#Key for forms
-app.config['SECRET_KEY'] = "password" #In teoria andrebbe nascosta TODO capire se implementare sicurezza
 #setting upload
 app.config['UPLOADED_IMAGES_DEST'] = 'maps'
 images_upload_set = UploadSet('images', IMAGES)
@@ -73,8 +71,8 @@ def add_data(json_string):
                          device_type = dict_tele["device_type"],
                          gps_lat = dict_tele['gps']['lat'],
                          gps_long = dict_tele['gps']['long'],
-                         timestamp= dict_tele['timestamp'],
-                         battery= dict_tele['battery'])
+                         timestamp= dict_tele.get('timestamp'),
+                         battery= dict_tele.get('battery'))
     db.session.add(data)
     db.session.commit()     
     return str(data.id)
