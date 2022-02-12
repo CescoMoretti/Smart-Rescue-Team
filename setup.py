@@ -77,8 +77,13 @@ setup(
         'Flask==1.1.2',
         'Flask-SQLAlchemy==2.4.4',
         'Flask-Uploads==0.2.1',
-        'numpy==1.19.2',
-        'opencv-python==4.0.1'
+        'numpy==1.22.2',
+        'opencv-python==4.5.5.62',
+        'requests==2.27.1',
+        'Flask-WTF==1.0.0',
+        'WTForms==3.0.1',
+        'matplotlib==3.5.1',
+        'paho-mqtt==1.6.1'
     ],
     extras_require={
         # eg:

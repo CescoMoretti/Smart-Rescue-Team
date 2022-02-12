@@ -1,73 +1,73 @@
+from charset_normalizer import detect
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
 
 class Detector():
-    def __init__(self, weights_path, cfg_path, l_names):
+
+    def __init__(self, weights_path, cfg_path, l_names_path):
         self.weights_path = weights_path
         self.cfg_path = cfg_path
-        self.l_names = l_names
-        self.yolo_net = cv2.dnn.readNet(self.weights_path, self.cfg_path)
-        with open(self.l_names, 'r') as f:
+        self.l_names_path = l_names_path
+        self.yolo_net = cv2.dnn.readNetFromDarknet(cfg_path, weights_path)
+        self.layerNames = self.yolo_net.getLayerNames()
+        self.layerNames = [self.layerNames[i - 1] for i in self.yolo_net.getUnconnectedOutLayers()]
+
+        with open(self.l_names_path, 'r') as f:
             self.classes = f.read().splitlines()
         self.progressiveId = 0
 
 
     def detectMissingPeople(self, imgpath):
-
         self.progressiveId += 1
         detected = False
-        img =  cv2.imread(imgpath)
-        blob = cv2.dnn.blobFromImage(img, 1/255, (320,320), (0,0,0), swapRB=True, crop=False)
+        COLORS = np.random.randint(0, 255, size=(len(self.classes), 3), dtype="uint8")
+        frame =  cv2.imread(imgpath)
 
-        print(blob.shape)
+        (H, W) = frame.shape[:2]
 
+        blob = cv2.dnn.blobFromImage(frame, 1 / 255.0, (416, 416), swapRB=True, crop=False)
         self.yolo_net.setInput(blob)
-        output_layers_name = self.yolo_net.getUnconnectedOutLayersNames()
-        output_layer = self.yolo_net.forward(output_layers_name)
 
-        bounding = []
+        layerOutputs = self.yolo_net.forward(self.layerNames)
+
+        bounding_boxes = []
         confidences = []
         class_ids = []
 
-        print(output_layer)
-
-        for output in output_layer:
+        for output in layerOutputs:
             for detection in output:
                 score = detection[5:]
                 class_id = np.argmax(score)
                 confidence = score[class_id]
-                width = img.shape[1]
-                height = img.shape[0]
-                if confidence > 0.7 and class_id == 0:
-                    center_x = int(detection[0]*width)
-                    center_y = int(detection[0]*height)
-                    w = int(detection[0]*width)
-                    h = int(detection[0]*height)
 
-                    x = int(center_x - w/2)
-                    y = int(center_y - h/2)
+                if confidence > 0.65 and class_id == 0:
+                    box = detection[0:4] * np.array([W, H, W, H])
+                    (centerX, centerY, width, height) = box.astype("int")
 
-                    bounding.append([x, y, w, h])
+                    x = int(centerX - (width / 2))
+                    y = int(centerY - (height / 2))
+
+                    bounding_boxes.append([x, y, int(width), int(height)])
                     confidences.append(float(confidence))
                     class_ids.append(class_id)
 
-        indexes = cv2.dnn.NMSBoxes(bounding, confidences, 0.5, 0.4)
-
-        font = cv2.FONT_HERSHEY_COMPLEX
-        colors = np.random.uniform(0, 255, size=(len(bounding), 3))
+        indexes = cv2.dnn.NMSBoxes(bounding_boxes, confidences, 0.65, 0.4)
 
         if len(indexes) > 0:
             detected = not detected
+            # loop over the indexes we are keeping
             for i in indexes.flatten():
-                x, y, w, h = bounding[i]
-                label = str(self.classes[class_ids[i]])
-                confid = str(round(confidences[i], 2))
-                color = colors[i]
+                # extract the bounding box coordinates
+                (x, y) = (int(bounding_boxes[i][0]), int(bounding_boxes[i][1]))
+                (w, h) = (int(bounding_boxes[i][2]), int(bounding_boxes[i][3]))
 
-                cv2.rectangle(img, (x, y), (x+w, y+h), color, 3)
-                cv2.putText(img, label + ' ' + confid, (x, y+20), font, 2, (255, 255, 255), 3)
+                # draw a bounding box rectangle and label on the image
+                color = [int(c) for c in COLORS[class_ids[i]]]
+                cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+                text = "{}: {:.4f}".format(self.classes[class_ids[i]], confidences[i])
+                cv2.putText(frame, text, (x, y - 5), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
 
-        cv2.imwrite('Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', img)
+        cv2.imwrite('Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', frame)
         return self.progressiveId, 'Smart-Rescue-Team/src/dog/predicted_imgs/' + str(self.progressiveId) + '.jpg', detected
