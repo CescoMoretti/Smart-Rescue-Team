@@ -18,8 +18,8 @@ import shutil
 import time
 
 #classe che implementa tutti i comportamenti dell'oggetto iot cane
-imgpath = 'C:/Users/cesco/OneDrive/Desktop/iot/Smart-Rescue-Team/src/dog/camera_stream_simulator.jpg'
-imgs = glob.glob('C:/Users/cesco/OneDrive/Desktop/iot/Smart-Rescue-Team/src/dog/imgs/*.jpg')
+imgpath = 'Smart-Rescue-Team/src/dog/camera_stream_simulator.jpg'
+imgs = glob.glob('Smart-Rescue-Team/src/dog/imgs/*.jpg')
 
 class Dog:
     def __init__(self, broker, port, client_id):
@@ -52,7 +52,7 @@ class Dog:
 
     def simulate_camera(self):
         a = imgs[random.randint(0, (len(imgs) - 1))]
-        shutil.copyfile(a, r'C:/Users/cesco/OneDrive/Desktop/iot/Smart-Rescue-Team/src/dog/camera_stream_simulator.jpg')
+        shutil.copyfile(a, r'Smart-Rescue-Team/src/dog/camera_stream_simulator.jpg')
         time.sleep(2)
     
 
