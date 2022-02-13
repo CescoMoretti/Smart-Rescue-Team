@@ -1,3 +1,4 @@
+import os
 from asyncio.windows_events import NULL
 from pathlib import Path
 import sys
@@ -14,14 +15,29 @@ from flask_wtf.file import FileRequired, FileAllowed , FileField
 
 from flask_sqlalchemy import SQLAlchemy
 
+import pandas as pd
+import folium
+from folium import plugins
+
+from turbo_flask import Turbo
+import threading
+import time
+
 
 
 #create a flask instance
 app = Flask(__name__)
+#Key for forms
+app.config['SECRET_KEY'] = "password" #In teoria andrebbe nascosta TODO capire se implementare sicurezza
 #setting upload
 app.config['UPLOADED_IMAGES_DEST'] = 'maps'
 images_upload_set = UploadSet('images', IMAGES)
 configure_uploads(app, images_upload_set)
+
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+turbo = Turbo(app)
+app.config['SERVER_NAME'] = "192.168.1.75:80"
+
 #Create form class
 class Image_form(FlaskForm):
     #name = StringField('Name', validators=[DataRequired()])
@@ -71,8 +87,8 @@ def add_data(json_string):
                          device_type = dict_tele["device_type"],
                          gps_lat = dict_tele['gps']['lat'],
                          gps_long = dict_tele['gps']['long'],
-                         timestamp= dict_tele.get('timestamp'),
-                         battery= dict_tele.get('battery'))
+                         timestamp= dict_tele['timestamp'],
+                         battery= dict_tele['battery'])
     db.session.add(data)
     db.session.commit()     
     return str(data.id)
@@ -82,6 +98,12 @@ def view_data():
     list_data=Db_data_model.query.order_by(Db_data_model.id.desc()).all()
 
     return render_template('view_data.html', instances=list_data)
+
+
+@app.route('/view_map', methods=['GET'])
+def view_map():
+    return render_template('view_map.html')
+
  
 @app.route('/images', methods=['GET', 'POST'])
 def add_image():  
@@ -111,6 +133,37 @@ def page_not_found(e):
 @app.errorhandler(500)
 def page_not_found(e):
     return render_template("500.html"), 500
+
+#________________Turbo flask setting__________________
+
+@app.before_first_request
+def before_first_request():
+    threading.Thread(target=update_load).start()
+
+
+def update_load():
+    with app.app_context():
+        while True:
+            time.sleep(10)
+            turbo.push(turbo.replace(render_template('just_map.html'), 'load'))
+
+@app.context_processor
+def create_map():
+    df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
+    m = folium.Map([44.847343, 10.722371], zoom_start=13)
+    stationArr = df[['gps_lat', 'gps_long']].values
+    m.add_child(plugins.HeatMap(stationArr, radius=15))
+
+    new_map_name = "map" + str(time.time()) + ".html"
+
+    for filename in os.listdir('static/'):
+        if (filename.startswith('map')):
+            print('static/' + filename)
+            os.remove('static/' + filename)
+
+    m.save('static/' + new_map_name)
+
+    return {'map_name': new_map_name}
 
 
 #________________main______________________________
