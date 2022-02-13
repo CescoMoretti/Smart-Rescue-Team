@@ -17,7 +17,6 @@ import shutil
 import os
 import time
 
-
 #classe che implementa tutti i comportamenti dell'oggetto iot cane
 this_path = os.getcwd()
 imgpath = this_path+'/src/dog/camera_stream_simulator.jpg'
@@ -47,18 +46,16 @@ class Dog:
     def send_data_ai(self):
         imgname, imgpath_pred, ack = self.detector.detectMissingPeople(imgpath)
         with open(imgpath_pred, 'rb') as imgfile:
-            encoded_img = base64.b64encode(imgfile.read())     
             encoded_img = binascii.b2a_base64(imgfile.read()).decode()
-            print(encoded_img)
-
+            print('fatto')
         msg = Msg_dog_matchingAI(self.client_id, self.read_coordinates(), encoded_img, imgname, ack)             
         self.publisher_ai.publish(msg.get_json_from_dict())
-        time.sleep(3)
+        time.sleep(5)
 
     def simulate_camera(self):
         a = imgs[random.randint(0, (len(imgs) - 1))]
         shutil.copyfile(a, this_path+'/src/dog/camera_stream_simulator.jpg')
-        time.sleep(2)
+        time.sleep(4)
     
 
     def activate_dog(self):
