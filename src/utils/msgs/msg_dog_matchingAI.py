@@ -15,15 +15,16 @@ class Msg_dog_matchingAI(object):
         self.timestamp = time.time()  
         self.img = img
         self.imgname = imgname
-        self.ack = ack      #capire se mandare un immagine invece che un ack  
+        self.ack = ack      #capire se mandare un immagine invece che un ack
         self.data = {"name" : name, 
-                     "msg_type" : self.msg_type, 
-                     "device_type" : self.device_type ,
-                     "gps" : self.gps_cord, 
-                     "timestamp" : self.timestamp,
-                     "img" : self.img,
-                     "imgname" : self.imgname, 
-                     "ack" : self.ack}
+                    "msg_type" : self.msg_type, 
+                    "device_type" : self.device_type ,
+                    "gps" : self.gps_cord, 
+                    "timestamp" : self.timestamp,
+                    "img" : self.img,
+                    "imgname" : self.imgname, 
+                    "ack" : self.ack}
+
 
     def get_json_from_dict(self):        
         json_data = json.dumps(self.data)
