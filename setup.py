@@ -76,7 +76,7 @@ setup(
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
         'Flask==1.1.2',
         'Flask-SQLAlchemy==2.4.4',
-        'Flask-Uploads==0.2.1',
+        'Flask-Reuploaded==1.2.0',
         'numpy==1.22.2',
         'opencv-python==4.5.5.62',
         'requests==2.27.1',

@@ -53,7 +53,7 @@ class Dog:
         with open(imgpath_pred, 'rb') as imgfile:
             encoded_img = base64.b64encode(imgfile.read())     
             encoded_img = binascii.b2a_base64(imgfile.read()).decode()
-            print(encoded_img)
+        print(encoded_img)
 
         msg = Msg_dog_matchingAI(self.client_id, self.read_coordinates(), encoded_img, imgname, ack)             
         self.publisher_ai.publish(msg.get_json_from_dict())
