@@ -52,12 +52,9 @@ class Dog:
         print(type(imgcv))
         
         #imgcv = cv2.cvtColor(imgcv, cv2.COLOR_BGR2GRAY)
-        #retval, image = imgcv.read()
         retval, buffer = cv2.imencode('.jpg', imgcv, [cv2.IMWRITE_JPEG_QUALITY, 50])
         encoded_img = base64.b64encode(buffer).decode()
 
-        #cv2.imwrite('C:/Users/Tobi/Desktop/New folder (2)/'+str(imgname)+'.jpg', imgcv)
-        
         msg = Msg_dog_matchingAI(self.client_id, self.read_coordinates(), encoded_img, imgname, ack)             
         self.publisher_ai.publish(msg.get_json_from_dict())
         time.sleep(15)
