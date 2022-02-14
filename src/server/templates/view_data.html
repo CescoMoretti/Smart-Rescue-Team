@@ -5,7 +5,7 @@
     <h1>Database</h1>
 
     {% for istance in instances %}
-        id: {{istance.id}} name: {{istance.name}} - data type: {{istance.msg_type}} - device :{{istance.device_type}} - lat: {{istance.gps_lat}} - long: {{istance.gps_long}} - battery: {{istance.battery}} <br/> 
+        {{istance.id}}: {{istance.name}} - {{istance.msg_type}} - {{istance.device_type}} - {{istance.gps_lat}} - {{istance.gps_long}} - {{istance.timestamp}} <br/> 
     {% endfor %}
 
 

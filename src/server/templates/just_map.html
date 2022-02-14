@@ -1,0 +1,12 @@
+<!doctype html>
+<html>
+  <head>
+      <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/mystyle.css') }}">
+    {{ turbo() }}
+  </head>
+  <body>
+  <div id="load" class="load">
+    <iframe src="{{ url_for('static', filename=map_name) }}" height=800  width=1500 margin-left="auto" margin-right = "auto"></iframe>
+  </div>
+  </body>
+</html>

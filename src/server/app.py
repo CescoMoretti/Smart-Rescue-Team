@@ -1,3 +1,4 @@
+import os
 from asyncio.windows_events import NULL
 from pathlib import Path
 import sys
@@ -5,6 +6,7 @@ path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 
 import json
+from find_unexplored_space import find_unexplored_space
 from flask_uploads import configure_uploads, IMAGES, UploadSet
 from flask import Flask, render_template, flash
 from flask_wtf import FlaskForm
@@ -15,14 +17,33 @@ from flask_wtf.file import FileRequired, FileAllowed , FileField
 
 from flask_sqlalchemy import SQLAlchemy
 
+import pandas as pd
+import folium
+from folium import plugins
+import numpy as np
+
+from turbo_flask import Turbo
+import threading
+import time
+
 
 
 #create a flask instance
 app = Flask(__name__)
+#Key for forms
+app.config['SECRET_KEY'] = "password" #In teoria andrebbe nascosta TODO capire se implementare sicurezza
 #setting upload
 app.config['UPLOADED_IMAGES_DEST'] = 'maps'
 images_upload_set = UploadSet('images', IMAGES)
 configure_uploads(app, images_upload_set)
+
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+turbo = Turbo(app)
+app.config['SERVER_NAME'] = "127.0.0.1:5000"
+
+#dictionary to list all object
+objs_dict = {}
+time_direction_calc = time.time()
 #Create form class
 class Image_form(FlaskForm):
     #name = StringField('Name', validators=[DataRequired()])
@@ -55,18 +76,17 @@ class Db_data_model(db.Model):
 
     def __repr__(self):
         return '<Name %r>' %self.names
-#dictionary to list all object
-objs_dict = {}
+
 
 #Create a route decorator
 @app.route('/')
-
 def index():
     return render_template("index.html")
 
 
 @app.route('/data/add/<json_string>', methods=['POST'])
 def add_data(json_string):
+    global objs_dict
     dict_tele = json.loads(json_string)
     data = Db_data_model(name= dict_tele['name'],
                          msg_type = dict_tele["msg_type"],
@@ -76,7 +96,16 @@ def add_data(json_string):
                          timestamp= dict_tele.get('timestamp'),
                          battery= dict_tele.get('battery'))
     db.session.add(data)
-    db.session.commit()     
+    db.session.commit()
+    if dict_tele["device_type"] == "team": #type of object that can be controlled
+        if dict_tele['name'] not in objs_dict.keys(): #if not exist in dictionary
+            #TODO set direction in a smarter way 
+            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "direction": [1,1], "steplenght": 0.0001} 
+        
+        if dict_tele["msg_type"] == "telemetry":
+            objs_dict[dict_tele['name']]["last_lat"] = dict_tele['gps']['lat']
+            objs_dict[dict_tele['name']]["last_long"] = dict_tele['gps']['long']
+    
     return str(data.id)
 
 @app.route('/view_data', methods=['GET'])
@@ -85,19 +114,44 @@ def view_data():
 
     return render_template('view_data.html', instances=list_data)
 
-#_______________________send direction to objs__________
-
+#_______________________send direction to objs_____________________________________
 
 @app.route('/get_direction/<obj_name>', methods=['GET'])
-def send_direction(obj_name):   
-    obj_name = obj_name
+def send_direction(obj_name): 
+    global time_direction_calc
+    print(time_direction_calc)
+    print("brake 1")
+    if time.time() - time_direction_calc >= 10.0:
+        print("brake 2")
+        df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
+        print(df)
+        objective_point = find_unexplored_space(df)
+        df_team = pd.DataFrame.from_dict(objs_dict)
+        for item in df_team:
+            df_team[item] ['distance'] = df_team[item][['lat', 'long']].sub(np.array(objective_point)).pow(2).sum(1).pow(0.5)
+        id = df_team['distance'].idmin()
+        nearest_obj= df_team.iloc[[id]]
+        objs_dict[nearest_obj]["direction"] = [objs_dict[nearest_obj]["last_lat"] - objective_point[0],
+                                               objs_dict[nearest_obj]["last_long"] - objective_point[1]] 
+        time_direction_calc = time.time()
+        
+    obj_name = obj_name.replace("<", "")
+    obj_name = obj_name.replace(">", "")    
     if obj_name in objs_dict:
-        objs_dict[obj_name] ["direction"][0] += 1
+        
+        direction = objs_dict[obj_name]        
     else:
-        objs_dict[obj_name] = {"direction": [1, 1], "steplenght": 1}
+        direction = {"last_lat": None, "last_long": None, "direction": [1, 1], "steplenght": 0.0001}        
 
-    return objs_dict[obj_name]
-#_______________________________________add map manualy_________________________
+    return direction #{key: objs_dict[obj_name][key] for key in objs_dict[obj_name].keys() & {'direction', 'steplenght'}}
+
+#_______________________________visualize the map______________________________
+@app.route('/view_map', methods=['GET'])
+def view_map():
+    
+    return render_template('view_map.html')
+
+#_______________________________________add map manualy_________________________ 
 @app.route('/images', methods=['GET', 'POST'])
 def add_image():  
     path_map = None
@@ -126,6 +180,37 @@ def page_not_found(e):
 @app.errorhandler(500)
 def page_not_found(e):
     return render_template("500.html"), 500
+
+#________________Turbo flask setting__________________
+
+@app.before_first_request
+def before_first_request():
+    threading.Thread(target=update_load).start()
+
+
+def update_load():
+    with app.app_context():
+        while True:
+            time.sleep(10)
+            turbo.push(turbo.replace(render_template('just_map.html'), 'load'))
+
+@app.context_processor
+def create_map():
+    df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
+    m = folium.Map([44.847343, 10.722371], zoom_start=13)
+    stationArr = df[['gps_lat', 'gps_long']].values
+    m.add_child(plugins.HeatMap(stationArr, radius=15))
+
+    new_map_name = "map" + str(time.time()) + ".html"
+
+    for filename in os.listdir('static/'):
+        if (filename.startswith('map')):
+            #print('static/' + filename)
+            os.remove('static/' + filename)
+
+    m.save('static/' + new_map_name)
+
+    return {'map_name': new_map_name}
 
 
 #________________main______________________________

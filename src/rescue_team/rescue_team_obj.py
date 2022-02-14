@@ -49,7 +49,7 @@ class Rescue_team_obj:
             self.subscriber_ai.disconnect()
             
 
-    
+  
     def send_data_telemetry(self): 
         msg = Msg_team_telemetry(self.client_id, self.read_coordinates())             
         r = requests.post("http://127.0.0.1:5000/data/add/"+ msg.get_json_from_dict())
@@ -78,8 +78,9 @@ class Rescue_team_obj:
         #
         #    print('Detected People by dog '+str(data_json['name'])+'!\nAt time '+str(data_json['timestamp']))
             
-    def update_direction(self):
+    def update_direction(self):        
         obtained_direction = requests.get("http://127.0.0.1:5000/get_direction/<"+ self.client_id+ ">")
+        #print(obtained_direction)
         self.movement_param = obtained_direction.json()
         time.sleep(5)
         
