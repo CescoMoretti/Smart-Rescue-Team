@@ -67,7 +67,7 @@ objs_dict = {}
 def index():
     return render_template("index.html")
 
-
+#__________________________________add data_____________________
 @app.route('/data/add/<json_string>', methods=['POST'])
 def add_data(json_string):
     dict_tele = json.loads(json_string)
