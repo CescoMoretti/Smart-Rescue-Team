@@ -74,8 +74,8 @@ setup(
     python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*',
     install_requires=[
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
-        'Flask==1.1.2',
-        'Flask-SQLAlchemy==2.4.4',
+        'Flask==2.0.2',
+        'Flask-SQLAlchemy==2.5.1',
         'Flask-Reuploaded==1.2.0',
         'numpy==1.22.2',
         'opencv-python==4.5.5.62',
@@ -83,7 +83,11 @@ setup(
         'Flask-WTF==1.0.0',
         'WTForms==3.0.1',
         'matplotlib==3.5.1',
-        'paho-mqtt==1.6.1'
+        'paho-mqtt==1.6.1',
+        'scipy==1.8.0',
+        'turbo-flask==0.8.0',
+        'folium==0.12.1.post1',
+        'pandas==1.4.1',
     ],
     extras_require={
         # eg:
