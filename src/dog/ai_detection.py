@@ -21,6 +21,8 @@ class Detector():
 
 
     def detectMissingPeople(self, imgpath):
+        if self.progressiveId == 200:
+            self.progressiveId = 0
         self.progressiveId += 1
         detected = False
         COLORS = np.random.randint(0, 255, size=(len(self.classes), 3), dtype="uint8")
