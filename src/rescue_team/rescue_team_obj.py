@@ -25,7 +25,7 @@ class Rescue_team_obj:
         self.subscriber_tel = Subscriber_mqtt(self.broker, self.port, self.topic_tel, self.client_id + "-tel", self.callback_dog_tel)
         self.subscriber_ai = Subscriber_mqtt(self.broker, self.port, self.topic_ai, self.client_id + "-ai", self.callback_dog_ai)
         self.progressive_imgId = 0
-        self.direction = {"direction": [0, 0], "step_lenght": 0}
+        self.movement_param = {"direction": [0, 0], "step_lenght": 0}
         
 
 
@@ -38,7 +38,7 @@ class Rescue_team_obj:
         self.subscriber_ai.connect()
         try:
             while True:
-                print(self.direction)
+                print(self.movement_param)
                 time.sleep(1)
         
         except KeyboardInterrupt:
@@ -80,7 +80,7 @@ class Rescue_team_obj:
             
     def update_direction(self):
         obtained_direction = requests.get("http://127.0.0.1:5000/get_direction/<"+ self.client_id+ ">")
-        self.direction["direction"] = obtained_direction.json()["direction"]
+        self.movement_param = obtained_direction.json()
         time.sleep(5)
         
 
