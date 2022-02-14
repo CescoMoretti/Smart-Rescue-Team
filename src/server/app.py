@@ -54,7 +54,8 @@ class Db_data_model(db.Model):
 
     def __repr__(self):
         return '<Name %r>' %self.names
-
+#dictionary to list all object
+objs_dict = {}
 
 #Create a route decorator
 @app.route('/')
@@ -82,7 +83,20 @@ def view_data():
     list_data=Db_data_model.query.order_by(Db_data_model.id.desc()).all()
 
     return render_template('view_data.html', instances=list_data)
- 
+
+#_______________________send direction to objs__________
+
+
+@app.route('/get_direction/<obj_name>', methods=['GET'])
+def send_direction(obj_name):   
+    obj_name = obj_name
+    if obj_name in objs_dict:
+        objs_dict[obj_name] ["direction"][0] += 1
+    else:
+        objs_dict[obj_name] = {"direction": [1, 1], "steplenght": 1}
+
+    return objs_dict[obj_name]
+#_______________________________________add map manualy_________________________
 @app.route('/images', methods=['GET', 'POST'])
 def add_image():  
     path_map = None
