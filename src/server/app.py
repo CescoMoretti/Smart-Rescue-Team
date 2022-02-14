@@ -42,8 +42,9 @@ class Db_data_model(db.Model):
     gps_long =    db.Column(db.Integer, nullable=False)
     timestamp =   db.Column(db.Integer)
     battery =     db.Column(db.Integer)
+    ai_result_file =db.Column(db.String)
 
-    def __init__(self, name, msg_type, device_type, gps_lat, gps_long, timestamp, battery):
+    def __init__(self, name, msg_type, device_type, gps_lat, gps_long, timestamp, battery, ai_result_file):
         self.name = name
         self.msg_type = msg_type
         self.device_type = device_type
@@ -51,6 +52,7 @@ class Db_data_model(db.Model):
         self.gps_long = gps_long
         self.timestamp = timestamp
         self.battery = battery
+        self.ai_result_file = ai_result_file
 
     def __repr__(self):
         return '<Name %r>' %self.names
@@ -79,8 +81,9 @@ def add_data(json_string):
     db.session.commit()
     #_________________________________decodifica immagine_______________________
     if dict_tele["msg_type"] == "ai_matching":
-        # inserire decodifica e salvataggio immagine
+        # inserire decodifica e salvataggio immagine --> dati in dict_tele.get('img'))
         pass
+
     return str(data.id)
 
 @app.route('/view_data', methods=['GET'])
