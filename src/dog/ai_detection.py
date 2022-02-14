@@ -60,13 +60,10 @@ class Detector():
 
         if len(indexes) > 0:
             detected = not detected
-            # loop over the indexes we are keeping
             for i in indexes.flatten():
-                # extract the bounding box coordinates
                 (x, y) = (int(bounding_boxes[i][0]), int(bounding_boxes[i][1]))
                 (w, h) = (int(bounding_boxes[i][2]), int(bounding_boxes[i][3]))
 
-                # draw a bounding box rectangle and label on the image
                 color = [int(c) for c in COLORS[class_ids[i]]]
                 cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
                 text = "{}: {:.4f}".format(self.classes[class_ids[i]], confidences[i])

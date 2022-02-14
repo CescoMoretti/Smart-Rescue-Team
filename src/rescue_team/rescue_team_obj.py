@@ -12,6 +12,9 @@ from utils.data_structures.data_coordinates import Data_coordinates
 import time
 import requests
 import json, os
+import base64
+import cv2
+import numpy as np
 
 this_path = os.getcwd()
 
@@ -67,13 +70,16 @@ class Rescue_team_obj:
                                 #data_json["ack"])
         
         if data_json['ack'] == True:
+            if self.progressive_imgId == 100:
+                self.progressive_imgId = 0
             self.progressive_imgId += 1
-            with open(this_path+'/src/rescue_team/received_positive_imgs/'+str(self.progressive_imgId)+'.jpg', 'wb') as fw:
-                fw.write(binascii.a2b_base64(data_json['img']))
-
+            jpg_original = base64.b64decode(data_json['img'])
+            jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
+            img = cv2.imdecode(jpg_as_np, 1)
+            cv2.imwrite(this_path+'/received_positive_imgs/'+str(self.progressive_imgId)+'.jpg', img)
+            time.sleep(15)
             print('Detected People by dog '+str(data_json['name'])+'!\nAt time '+str(data_json['timestamp']))
             
-
 
     def read_coordinates(self):
         #TODO
