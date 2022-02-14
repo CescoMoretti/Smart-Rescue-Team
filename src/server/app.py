@@ -143,7 +143,7 @@ def send_direction(obj_name):
     else:
         direction = {"last_lat": None, "last_long": None, "direction": [1, 1], "steplenght": 0.0001}        
 
-    return direction #{key: objs_dict[obj_name][key] for key in objs_dict[obj_name].keys() & {'direction', 'steplenght'}}
+    return direction # {key: objs_dict[obj_name][key] for key in objs_dict[obj_name].keys() & {'direction', 'steplenght'}}
 
 #_______________________________visualize the map______________________________
 @app.route('/view_map', methods=['GET'])
