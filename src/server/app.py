@@ -43,8 +43,9 @@ class Db_data_model(db.Model):
     timestamp =   db.Column(db.Integer)
     battery =     db.Column(db.Integer)
     ai_result_file =db.Column(db.String)
+    ai_result_ack = db.Column(db.String)
 
-    def __init__(self, name, msg_type, device_type, gps_lat, gps_long, timestamp, battery, ai_result_file):
+    def __init__(self, name, msg_type, device_type, gps_lat, gps_long, timestamp, battery, ai_result_file, ai_result_ack):
         self.name = name
         self.msg_type = msg_type
         self.device_type = device_type
@@ -53,6 +54,7 @@ class Db_data_model(db.Model):
         self.timestamp = timestamp
         self.battery = battery
         self.ai_result_file = ai_result_file
+        self.ai_result_ack = ai_result_ack
 
     def __repr__(self):
         return '<Name %r>' %self.names
@@ -76,7 +78,8 @@ def add_data(json_string):
                          gps_long = dict_tele['gps']['long'],
                          timestamp= dict_tele.get('timestamp'),
                          battery= dict_tele.get('battery'),
-                         ai_result_file= dict_tele.get('imgname'))
+                         ai_result_file= dict_tele.get('imgname'),
+                         ai_result_ack = dict_tele.get('ack'))
     db.session.add(data)
     db.session.commit()
     #_________________________________decodifica immagine_______________________
