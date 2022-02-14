@@ -98,7 +98,7 @@ def add_data(json_string):
     db.session.add(data)
     db.session.commit()
     if dict_tele["device_type"] == "team": #type of object that can be controlled
-        if dict_tele['name'] not in objs_dict.keys(): #if not exist in dictionary
+        if dict_tele['name'] not in objs_dict: #if not exist in dictionary
             #TODO set direction in a smarter way 
             objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "direction": [1,1], "steplenght": 0.0001} 
         
@@ -134,7 +134,8 @@ def send_direction(obj_name):
         objs_dict[nearest_obj]["direction"] = [objs_dict[nearest_obj]["last_lat"] - objective_point[0],
                                                objs_dict[nearest_obj]["last_long"] - objective_point[1]] 
         time_direction_calc = time.time()
-        
+    
+    #take extra simboles out    
     obj_name = obj_name.replace("<", "")
     obj_name = obj_name.replace(">", "")    
     if obj_name in objs_dict:
