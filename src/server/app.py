@@ -73,9 +73,14 @@ def add_data(json_string):
                          gps_lat = dict_tele['gps']['lat'],
                          gps_long = dict_tele['gps']['long'],
                          timestamp= dict_tele.get('timestamp'),
-                         battery= dict_tele.get('battery'))
+                         battery= dict_tele.get('battery'),
+                         ai_result_file= dict_tele.get('imgname'))
     db.session.add(data)
-    db.session.commit()     
+    db.session.commit()
+    #_________________________________decodifica immagine_______________________
+    if dict_tele["msg_type"] == "ai_matching":
+        # inserire decodifica e salvataggio immagine
+        pass
     return str(data.id)
 
 @app.route('/view_data', methods=['GET'])
