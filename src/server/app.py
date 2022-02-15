@@ -229,7 +229,11 @@ def create_map():
     return {'map_name': new_map_name}
 
 
-#________________main______________________________
+#______________________________route to stop icon error_______________
+@app.route("/favicon.ico")
+def favicon():
+    return "", 200
+#____________________________main______________________________
 
 if __name__ == '__main__':
 

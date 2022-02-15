@@ -1,8 +1,18 @@
 
 iframe {
-    width: 600px;
-    height: 400px;
+    width: 780px;
+    height: 520px;
     margin: 0 auto;
     display: block;
     border-style:none;
+}
+
+.box{
+    float:left;
+    margin-right:20px;
+}
+
+.box1{
+    float:right;
+    margin-right:20px;
 }
