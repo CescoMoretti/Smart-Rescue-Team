@@ -156,8 +156,8 @@ def send_direction(obj_name):
         nearest_obj = df_team['distance'].idxmin()
         #print(nearest_obj)
         #nearest_obj= df_team.iloc[[id]]
-        objs_dict[nearest_obj]["direction"] = [objs_dict[nearest_obj]["last_lat"] - objective_point[0],
-                                               objs_dict[nearest_obj]["last_long"] - objective_point[1]] 
+        objs_dict[nearest_obj]["direction"] = [objective_point[0] - objs_dict[nearest_obj]["last_lat"],
+                                                objective_point[1] - objs_dict[nearest_obj]["last_long"]]
         time_direction_calc = time.time()
     
     #take extra simboles out    
@@ -223,18 +223,27 @@ def update_load():
 @app.context_processor
 def create_map():
     df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
-    m = folium.Map(df[['gps_lat', 'gps_long']].mean().values, zoom_start=15)
-    stationArr = df[['gps_lat', 'gps_long']].values
-    m.add_child(plugins.HeatMap(stationArr, radius=15))
 
-    new_map_name = "map" + str(time.time()) + ".html"
+    telemetry_data = df[df['msg_type']=='telemetry']
+    map = folium.Map(location=telemetry_data[['gps_lat', 'gps_long']].mean().values, zoom_start=12)
+    folium.plugins.HeatMap(telemetry_data[['gps_lat', 'gps_long']].values).add_to(map)
+
+    ML_data = df[df['msg_type'] == 'ai_result']
+    ML_data = ML_data[ML_data['result'] == 'true']
+
+    for i in range(0, len(ML_data)):
+        folium.Marker(
+            location=[ML_data.iloc[i]['gps_lat'], ML_data.iloc[i]['gps_long']],
+            popup=ML_data.iloc[i]['name'],
+        ).add_to(map)
 
     for filename in os.listdir('static/'):
         if (filename.startswith('map')):
             #print('static/' + filename)
             os.remove('static/' + filename)
 
-    m.save('static/' + new_map_name)
+    new_map_name = "map" + str(time.time()) + ".html"
+    map.save('static/' + new_map_name)
 
     return {'map_name': new_map_name}
 
