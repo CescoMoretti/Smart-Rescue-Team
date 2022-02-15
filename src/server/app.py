@@ -116,7 +116,7 @@ def add_data(json_string):
     if dict_tele["device_type"] == "team": #type of object that can be controlled
         if dict_tele['name'] not in objs_dict: #if not exist in dictionary
             #TODO set direction in a smarter way 
-            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "distance": 0, "direction": [1,1], "steplenght": 0.0001}
+            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "distance": 0, "direction": [1,1], "step_lenght": 0.0005}
         
         if dict_tele["msg_type"] == "telemetry":
             objs_dict[dict_tele['name']]["last_lat"] = dict_tele['gps']['lat']
@@ -135,26 +135,26 @@ def view_data():
 @app.route('/get_direction/<obj_name>', methods=['GET'])
 def send_direction(obj_name): 
     global time_direction_calc
-    print(time_direction_calc)
-    print("brake 1")
+    
+    
     if time.time() - time_direction_calc >= 10.0:
-        print("brake 2")
+        
         df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
-        print(df)
+        #print(df)
         objective_point = find_unexplored_space(df)
-        print(objective_point)
+        #print(objective_point)
         df_team = pd.DataFrame.from_dict(objs_dict)
         df_team = df_team.T
-        print(df_team)
+        #print(df_team)
         for index, row in df_team.iterrows():
             ilat = row['last_lat']
             ilong = row['last_long']
             #row['distance'] = row[['last_lat', 'last_long']].sub(np.array(objective_point)).pow(2).sum(1).pow(0.5)
             row['distance'] = math.hypot(ilong - objective_point[1], ilat - objective_point[0])
-        print(df_team)
+        #print(df_team)
         df_team['distance'] = pd.to_numeric(df_team['distance'])
         nearest_obj = df_team['distance'].idxmin()
-        print(nearest_obj)
+        #print(nearest_obj)
         #nearest_obj= df_team.iloc[[id]]
         objs_dict[nearest_obj]["direction"] = [objs_dict[nearest_obj]["last_lat"] - objective_point[0],
                                                objs_dict[nearest_obj]["last_long"] - objective_point[1]] 
@@ -167,9 +167,9 @@ def send_direction(obj_name):
         
         direction = objs_dict[obj_name]        
     else:
-        direction = {"last_lat": None, "last_long": None, "direction": [1, 1], "steplenght": 0.0001}        
+        direction = {"last_lat": None, "last_long": None, "direction": [1, 1], "step_lenght": 0.0001}        
 
-    return direction # {key: objs_dict[obj_name][key] for key in objs_dict[obj_name].keys() & {'direction', 'steplenght'}}
+    return direction # {key: objs_dict[obj_name][key] for key in objs_dict[obj_name].keys() & {'direction', 'step_lenght'}}
 
 #_______________________________visualize the map______________________________
 @app.route('/view_map', methods=['GET'])
@@ -223,7 +223,7 @@ def update_load():
 @app.context_processor
 def create_map():
     df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
-    m = folium.Map([44.847343, 10.722371], zoom_start=13)
+    m = folium.Map(df[['gps_lat', 'gps_long']].mean().values, zoom_start=15)
     stationArr = df[['gps_lat', 'gps_long']].values
     m.add_child(plugins.HeatMap(stationArr, radius=15))
 

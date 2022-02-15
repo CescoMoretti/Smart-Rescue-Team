@@ -16,7 +16,7 @@ import random
 import shutil
 import os
 import time
-
+import numpy as np
 #classe che implementa tutti i comportamenti dell'oggetto iot cane
 this_path = os.getcwd()
 imgpath = this_path+'/src/dog/camera_stream_simulator.jpg'
@@ -32,10 +32,11 @@ class Dog:
         self.topic_ai = f'smart_rescue_team/{client_id}/ai_result'       
         self.publisher_tel = Publisher_mqtt( broker, port, self.topic_tel, f'{self.client_id}_publisher_tel')
         self.publisher_ai = Publisher_mqtt( broker, port, self.topic_ai, f'{self.client_id}_publisher_ai')
-        self.movement_param = {"direction": [1, 2], "step_lenght": 2}
+        self.movement_param = {"direction": [1, 2], "step_lenght": 0.0001}
         self.detector = Detector(this_path+'/src/dog/YOLOv3/yolov3.weights',
                         this_path+'/src/dog/YOLOv3/yolov3.cfg',
                         this_path+'/src/dog/YOLOv3/coco.names')
+        self.current_cord = Data_coordinates(44.8596,10.7643) #Only for simulation purposes
                         
         
 
@@ -77,9 +78,11 @@ class Dog:
         
     
     def read_coordinates(self):
-        #TODO
-        telemetry = Data_coordinates(90,30)
-        return telemetry
+        #Simulate a gps device
+        norm_direction = np.linalg.norm(self.movement_param["direction"])
+        self.current_cord.lat += self.movement_param["step_lenght"] * self.movement_param["direction"][0] / norm_direction
+        self.current_cord.long += self.movement_param["step_lenght"] * self.movement_param["direction"][1] / norm_direction
+        return self.current_cord
 
     def read_battery(self):
         #TODO
