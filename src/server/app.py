@@ -1,3 +1,4 @@
+import math
 import os
 from asyncio.windows_events import NULL
 from pathlib import Path
@@ -39,7 +40,7 @@ configure_uploads(app, images_upload_set)
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 turbo = Turbo(app)
-app.config['SERVER_NAME'] = "127.0.0.1:5000"
+app.config['SERVER_NAME'] = "192.168.1.75:80"
 
 #dictionary to list all object
 objs_dict = {}
@@ -115,7 +116,7 @@ def add_data(json_string):
     if dict_tele["device_type"] == "team": #type of object that can be controlled
         if dict_tele['name'] not in objs_dict: #if not exist in dictionary
             #TODO set direction in a smarter way 
-            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "direction": [1,1], "steplenght": 0.0001} 
+            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "distance": 0, "direction": [1,1], "steplenght": 0.0001}
         
         if dict_tele["msg_type"] == "telemetry":
             objs_dict[dict_tele['name']]["last_lat"] = dict_tele['gps']['lat']
@@ -141,11 +142,20 @@ def send_direction(obj_name):
         df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
         print(df)
         objective_point = find_unexplored_space(df)
+        print(objective_point)
         df_team = pd.DataFrame.from_dict(objs_dict)
-        for item in df_team:
-            df_team[item] ['distance'] = df_team[item][['lat', 'long']].sub(np.array(objective_point)).pow(2).sum(1).pow(0.5)
-        id = df_team['distance'].idmin()
-        nearest_obj= df_team.iloc[[id]]
+        df_team = df_team.T
+        print(df_team)
+        for index, row in df_team.iterrows():
+            ilat = row['last_lat']
+            ilong = row['last_long']
+            #row['distance'] = row[['last_lat', 'last_long']].sub(np.array(objective_point)).pow(2).sum(1).pow(0.5)
+            row['distance'] = math.hypot(ilong - objective_point[1], ilat - objective_point[0])
+        print(df_team)
+        df_team['distance'] = pd.to_numeric(df_team['distance'])
+        nearest_obj = df_team['distance'].idxmin()
+        print(nearest_obj)
+        #nearest_obj= df_team.iloc[[id]]
         objs_dict[nearest_obj]["direction"] = [objs_dict[nearest_obj]["last_lat"] - objective_point[0],
                                                objs_dict[nearest_obj]["last_long"] - objective_point[1]] 
         time_direction_calc = time.time()
