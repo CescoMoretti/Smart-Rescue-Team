@@ -21,6 +21,7 @@ import cv2
 
 #classe che implementa tutti i comportamenti dell'oggetto iot cane
 this_path = os.getcwd()
+
 imgpath = this_path+'/src/dog/camera_stream_simulator.jpg'
 imgs = glob.glob(this_path+'/src/dog/imgs/*.jpg')
 

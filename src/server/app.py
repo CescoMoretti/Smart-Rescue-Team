@@ -9,12 +9,13 @@ sys.path.insert(0, path)
 import json
 from find_unexplored_space import find_unexplored_space
 from flask_uploads import configure_uploads, IMAGES, UploadSet
-from flask import Flask, render_template, flash
+from flask import Flask, render_template, flash, request
 from flask_wtf import FlaskForm
 from wtforms import  FileField
 from flask_wtf.file import FileRequired, FileAllowed , FileField
 
-
+import base64
+import cv2
 
 from flask_sqlalchemy import SQLAlchemy
 
@@ -31,6 +32,8 @@ import time
 
 #create a flask instance
 app = Flask(__name__)
+
+this_path = os.getcwd()
 #Key for forms
 app.config['SECRET_KEY'] = "password" #In teoria andrebbe nascosta TODO capire se implementare sicurezza
 #setting upload
@@ -50,11 +53,14 @@ class Image_form(FlaskForm):
     #name = StringField('Name', validators=[DataRequired()])
     image = FileField('Map', validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
 
+print(this_path)
+
 
 #App database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 #Initialize database
 db = SQLAlchemy(app)
+
 #Create data model
 class Db_data_model(db.Model):
     id =          db.Column(db.Integer, nullable=False, primary_key=True)
@@ -107,10 +113,20 @@ def add_data(json_string):
     db.session.commit()
     #_________________________________decodifica immagine_______________________
     if dict_tele["msg_type"] == "ai_matching":
-        # inserire decodifica e salvataggio immagine
-        pass
-    
-    
+
+        if dict_tele['ack'] == True:
+            f = json.loads(request.data)
+            jpg_original = base64.b64decode(f['image'])
+            jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
+            img = cv2.imdecode(jpg_as_np, flags=1)
+            cv2.imwrite(this_path+'/static/predicted_imgs/positive/'+str(dict_tele['imgname'])+'.jpg', img)
+            print('Detected People by dog '+str(dict_tele['name'])+'!\nAt time '+str(dict_tele['timestamp']))
+        else:
+            f = json.loads(request.data)
+            jpg_original = base64.b64decode(f['image'])
+            jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
+            img = cv2.imdecode(jpg_as_np, 1)
+            cv2.imwrite(this_path+'/static/predicted_imgs/negative/'+str(dict_tele['imgname'])+'.jpg', img)
 
     #____________________riempimento dizionario per la scelta della direzione______
     if dict_tele["device_type"] == "team": #type of object that can be controlled

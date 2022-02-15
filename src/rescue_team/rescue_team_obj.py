@@ -64,21 +64,13 @@ class Rescue_team_obj:
         print("data receved sended to server: " + str(r.status_code), r.reason)
 
     def callback_dog_ai(self, data):
-        r = requests.post("http://127.0.0.1:5000/data/add/"+ data)
-        print("data receved sended to server: " + str(r.status_code), r.reason)
         data_json = json.loads(data)
-        
-        #TODO QUESTO è DA FARE NEL SERVER.
-        #if data_json['ack'] == True:
-        #    if self.progressive_imgId == 100:
-        #        self.progressive_imgId = 0
-        #    self.progressive_imgId += 1
-        #    jpg_original = base64.b64decode(data_json['img'])
-        #    jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
-        #    img = cv2.imdecode(jpg_as_np, 1)
-        #    cv2.imwrite(this_path+'/received_positive_imgs/'+str(self.progressive_imgId)+'.jpg', img)
-        #    time.sleep(15)
-        #    print('Detected People by dog '+str(data_json['name'])+'!\nAt time '+str(data_json['timestamp']))
+        file = {'image': data_json['img']}
+        file = json.dumps(file)
+        data_json.pop('img')
+        data_new = json.dumps(data_json)
+        r = requests.post("http://127.0.0.1:5000/data/add/"+ data_new, data = file)
+        print("data receved sended to server: " + str(r.status_code), r.reason)
             
     def update_direction(self):        
         obtained_direction = requests.get("http://127.0.0.1:5000/get_direction/<"+ self.client_id+ ">")

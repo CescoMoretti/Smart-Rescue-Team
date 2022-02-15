@@ -135,3 +135,7 @@ src/dog/predicted_imgs/*
 src/rescue_team/received_positive_imgs/*
 !src/rescue_team/received_positive_imgs/example.jpg
 src/server/static/map*.html
+src/server/static/predicted_imgs/positive/*
+!src/server/static/predicted_imgs/positive/example.jpg
+src/server/static/predicted_imgs/negative/*
+!src/server/static/predicted_imgs/negative/example.jpg
