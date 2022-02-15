@@ -56,17 +56,18 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
 db = SQLAlchemy(app)
 #Create data model
 class Db_data_model(db.Model):
-    id =            db.Column(db.Integer, nullable=False, primary_key=True)
-    name =          db.Column(db.String,  nullable=False)
-    msg_type =      db.Column(db.String,  nullable=False)
-    device_type =   db.Column(db.String,  nullable=False)
-    gps_lat =       db.Column(db.Integer, nullable=False)
-    gps_long =      db.Column(db.Integer, nullable=False)
-    timestamp =     db.Column(db.Integer)
-    battery =       db.Column(db.Integer)
+    id =          db.Column(db.Integer, nullable=False, primary_key=True)
+    name =        db.Column(db.String,  nullable=False)
+    msg_type =    db.Column(db.String,  nullable=False)
+    device_type = db.Column(db.String,  nullable=False)
+    gps_lat =     db.Column(db.Integer, nullable=False)
+    gps_long =    db.Column(db.Integer, nullable=False)
+    timestamp =   db.Column(db.Integer)
+    battery =     db.Column(db.Integer)
     ai_result_file =db.Column(db.String)
+    ai_result_ack = db.Column(db.String)
 
-    def __init__(self, name, msg_type, device_type, gps_lat, gps_long, timestamp, battery, ai_result_file):
+    def __init__(self, name, msg_type, device_type, gps_lat, gps_long, timestamp, battery, ai_result_file, ai_result_ack):
         self.name = name
         self.msg_type = msg_type
         self.device_type = device_type
@@ -75,6 +76,7 @@ class Db_data_model(db.Model):
         self.timestamp = timestamp
         self.battery = battery
         self.ai_result_file = ai_result_file
+        self.ai_result_ack = ai_result_ack
 
     def __repr__(self):
         return '<Name %r>' %self.names
@@ -85,7 +87,7 @@ class Db_data_model(db.Model):
 def index():
     return render_template("index.html")
 
-
+#__________________________________add data_____________________
 @app.route('/data/add/<json_string>', methods=['POST'])
 def add_data(json_string):
     global objs_dict
@@ -98,7 +100,8 @@ def add_data(json_string):
                          gps_long = dict_tele['gps']['long'],
                          timestamp= dict_tele.get('timestamp'),
                          battery= dict_tele.get('battery'),
-                         ai_result_file= dict_tele.get('imgname'))
+                         ai_result_file= dict_tele.get('imgname'),
+                         ai_result_ack = dict_tele.get('ack'))
     db.session.add(data)
     db.session.commit()
     #_________________________________decodifica immagine_______________________
