@@ -40,7 +40,7 @@ configure_uploads(app, images_upload_set)
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 turbo = Turbo(app)
-#app.config['SERVER_NAME'] = "192.168.1.75:80"
+app.config['SERVER_NAME'] = "127.0.0.1:5000"
 
 #dictionary to list all object
 objs_dict = {}
