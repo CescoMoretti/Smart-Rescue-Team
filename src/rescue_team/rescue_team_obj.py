@@ -28,32 +28,36 @@ class Rescue_team_obj:
         self.subscriber_tel = Subscriber_mqtt(self.broker, self.port, self.topic_tel, self.client_id + "-tel", self.callback_dog_tel)
         self.subscriber_ai = Subscriber_mqtt(self.broker, self.port, self.topic_ai, self.client_id + "-ai", self.callback_dog_ai)
         self.progressive_imgId = 0
+        self.movement_param = {"direction": [0, 0], "step_lenght": 0}
         
 
 
     def start(self):
         tele_thread = Thread_model('telemetry', self.send_data_telemetry)
         tele_thread.start()
+        update_direction_thread = Thread_model('telemetry', self.update_direction)
+        update_direction_thread.start()
         self.subscriber_tel.connect()
         self.subscriber_ai.connect()
         try:
             while True:
+                print(self.movement_param)
                 time.sleep(1)
         
         except KeyboardInterrupt:
             print("exiting")
             tele_thread.join()
+            update_direction_thread.join()
             self.subscriber_tel.disconnect()
             self.subscriber_ai.disconnect()
             
 
-    
+  
     def send_data_telemetry(self): 
         msg = Msg_team_telemetry(self.client_id, self.read_coordinates())             
         r = requests.post("http://127.0.0.1:5000/data/add/"+ msg.get_json_from_dict())
         print("data team position sended to server: " + str(r.status_code), r.reason)
         time.sleep(2)
-
 
     def callback_dog_tel(self, data):        
         r = requests.post("http://127.0.0.1:5000/data/add/"+ data)
@@ -76,6 +80,12 @@ class Rescue_team_obj:
         #    time.sleep(15)
         #    print('Detected People by dog '+str(data_json['name'])+'!\nAt time '+str(data_json['timestamp']))
             
+    def update_direction(self):        
+        obtained_direction = requests.get("http://127.0.0.1:5000/get_direction/<"+ self.client_id+ ">")
+        #print(obtained_direction)
+        self.movement_param = obtained_direction.json()
+        time.sleep(5)
+        
 
     def read_coordinates(self):
         #TODO

@@ -1,8 +1,9 @@
 import json
 import time
 from utils.data_structures.data_coordinates import Data_coordinates
+from utils.msgs.msg_abstact import Message_SRT 
 
-class Msg_dog_telemetry(object):
+class Msg_dog_telemetry(Message_SRT):
     
     def __init__(self, name, start_cord, start_battery):
         #create data structure

@@ -1,8 +1,9 @@
 import json
 from utils.data_structures.data_coordinates import Data_coordinates
 import time
+from utils.msgs.msg_abstact import Message_SRT 
+class Msg_dog_matchingAI(Message_SRT):
 
-class Msg_dog_matchingAI(object):
     
     def __init__(self, name, start_cord, img, imgname, ack):
         #create data structure

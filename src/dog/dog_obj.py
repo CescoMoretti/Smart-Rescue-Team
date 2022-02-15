@@ -34,6 +34,7 @@ class Dog:
         self.topic_ai = f'smart_rescue_team/{client_id}/ai_result'       
         self.publisher_tel = Publisher_mqtt( broker, port, self.topic_tel, f'{self.client_id}_publisher_tel')
         self.publisher_ai = Publisher_mqtt( broker, port, self.topic_ai, f'{self.client_id}_publisher_ai')
+        self.movement_param = {"direction": [1, 2], "step_lenght": 2}
         self.detector = Detector(this_path+'/src/dog/YOLOv3/yolov3.weights',
                         this_path+'/src/dog/YOLOv3/yolov3.cfg',
                         this_path+'/src/dog/YOLOv3/coco.names')

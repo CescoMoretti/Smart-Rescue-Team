@@ -2,8 +2,9 @@ import json
 from os import device_encoding
 import time
 from utils.data_structures.data_coordinates import Data_coordinates
+from utils.msgs.msg_abstact import Message_SRT 
 
-class Msg_team_telemetry(object):
+class Msg_team_telemetry(Message_SRT):
     
     def __init__(self, name, start_cord):
         #create data structure
