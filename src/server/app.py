@@ -229,7 +229,7 @@ def create_map():
     folium.plugins.HeatMap(telemetry_data[['gps_lat', 'gps_long']].values).add_to(map)
 
     ML_data = df[df['msg_type'] == 'ai_result']
-    ML_data = ML_data[ML_data['result'] == 'true']
+    ML_data = ML_data[ML_data['ai_result_ack'] == 'True']
 
     for i in range(0, len(ML_data)):
         folium.Marker(
