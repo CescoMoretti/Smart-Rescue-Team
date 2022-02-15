@@ -1,5 +1,6 @@
 import base64
 import binascii
+from cgitb import grey
 from pathlib import Path
 import sys
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
@@ -16,6 +17,7 @@ import random
 import shutil
 import os
 import time
+import cv2
 
 #classe che implementa tutti i comportamenti dell'oggetto iot cane
 this_path = os.getcwd()
@@ -46,12 +48,17 @@ class Dog:
 
     def send_data_ai(self):
         imgname, imgpath_pred, ack = self.detector.detectMissingPeople(imgpath)
-        with open(imgpath_pred, 'rb') as imgfile:
-            encoded_img = binascii.b2a_base64(imgfile.read()).decode()
-            print('fatto')
+
+        imgcv = cv2.imread(imgpath_pred)
+        print(type(imgcv))
+        
+        #imgcv = cv2.cvtColor(imgcv, cv2.COLOR_BGR2GRAY)
+        retval, buffer = cv2.imencode('.jpg', imgcv, [cv2.IMWRITE_JPEG_QUALITY, 50])
+        encoded_img = base64.b64encode(buffer).decode()
+
         msg = Msg_dog_matchingAI(self.client_id, self.read_coordinates(), encoded_img, imgname, ack)             
         self.publisher_ai.publish(msg.get_json_from_dict())
-        time.sleep(5)
+        time.sleep(15)
 
     def simulate_camera(self):
         a = imgs[random.randint(0, (len(imgs) - 1))]
