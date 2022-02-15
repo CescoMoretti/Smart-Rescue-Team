@@ -132,3 +132,4 @@ dmypy.json
 src/server/maps/
 src/dog/predicted_imgs/*
 !src/dog/predicted_imgs/example.jpg
+src/server/static/map*.html
