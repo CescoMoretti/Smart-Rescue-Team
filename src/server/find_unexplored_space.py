@@ -5,8 +5,7 @@ import numpy as np
 
 def find_unexplored_space(df):
     
-   
-    center = df.mean().values
+    df = df[['gps_lat','gps_long']].copy()
     center = np.around(df.mean().values, decimals=4)
     dist = abs(df - center).max().values
     dlat = round(dist[0]/0.0001)
