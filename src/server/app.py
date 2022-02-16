@@ -206,7 +206,7 @@ def send_direction(obj_name):
             objs_dict[nearest_obj]["direction"] = [objective_point[0] - objs_dict[nearest_obj]["last_lat"],
                                                     objective_point[1] - objs_dict[nearest_obj]["last_long"]]
 
-            Db_data_model.query.filter_by(name=nearest_obj).delete()
+            Db_data_model.query.filter_by(name=nearest_obj, msg_type="new_direction").delete()
             mutex.acquire()
             db.session.commit()
             mutex.release()
