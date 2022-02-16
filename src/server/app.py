@@ -26,6 +26,7 @@ import numpy as np
 from turbo_flask import Turbo
 import threading
 import time
+import random
 
 
 
@@ -45,6 +46,9 @@ app.config['SERVER_NAME'] = "127.0.0.1:5000"
 #dictionary to list all object
 objs_dict = {}
 time_direction_calc = time.time()
+image_used = []
+image_id = 0
+
 #Create form class
 class Image_form(FlaskForm):
     #name = StringField('Name', validators=[DataRequired()])
@@ -115,8 +119,10 @@ def add_data(json_string):
     #____________________riempimento dizionario per la scelta della direzione______
     if dict_tele["device_type"] == "team": #type of object that can be controlled
         if dict_tele['name'] not in objs_dict: #if not exist in dictionary
-            #TODO set direction in a smarter way 
-            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "distance": 0, "direction": [1,1], "step_lenght": 0.0005}
+            #TODO set direction in a smarter way
+            r = lambda: random.randint(100, 255)
+            color = ('#%02X%02X%02X' % (r(), r(), r()))
+            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "distance": 0, "direction": [1,1], "step_lenght": 0.0005, 'color': color}
         
         if dict_tele["msg_type"] == "telemetry":
             objs_dict[dict_tele['name']]["last_lat"] = dict_tele['gps']['lat']
@@ -158,8 +164,23 @@ def send_direction(obj_name):
         #nearest_obj= df_team.iloc[[id]]
         objs_dict[nearest_obj]["direction"] = [objective_point[0] - objs_dict[nearest_obj]["last_lat"],
                                                 objective_point[1] - objs_dict[nearest_obj]["last_long"]]
+
+        #ELIMINARE DAL DB IN BASE AL NOME DELLA SQUADRA
+
+        data = Db_data_model(name=nearest_obj,
+                             msg_type='new_direction',
+                             device_type=objs_dict[nearest_obj]['color'],
+                             gps_lat=objective_point[0],
+                             gps_long=objective_point[1],
+                             timestamp=time.time(),
+                             battery = "",
+                             ai_result_file = "",
+                             ai_result_ack = "")
+        db.session.add(data)
+        db.session.commit()
+
         time_direction_calc = time.time()
-    
+
     #take extra simboles out    
     obj_name = obj_name.replace("<", "")
     obj_name = obj_name.replace(">", "")    
@@ -228,22 +249,38 @@ def create_map():
     map = folium.Map(location=telemetry_data[['gps_lat', 'gps_long']].mean().values, zoom_start=13)
     folium.plugins.HeatMap(telemetry_data[['gps_lat', 'gps_long']].values).add_to(map)
 
-    ML_data = df[df['msg_type'] == 'ai_result']
-    ML_data = ML_data[ML_data['ai_result_ack'] == 'True']
-
-    for i in range(0, len(ML_data)):
+    ML_df = df[df['msg_type'] == 'ai_result']
+    ML_df = ML_df[ML_df['ai_result_ack'] == 'True']
+    for i in range(0, len(ML_df)):
         folium.Marker(
-            location=[ML_data.iloc[i]['gps_lat'], ML_data.iloc[i]['gps_long']],
-            popup=ML_data.iloc[i]['name'],
+            location=[ML_df.iloc[i]['gps_lat'], ML_df.iloc[i]['gps_long']],
+            popup=ML_df.iloc[i]['name'],
         ).add_to(map)
 
-    for filename in os.listdir('static/'):
-        if (filename.startswith('map')):
-            #print('static/' + filename)
-            os.remove('static/' + filename)
+    direction_df = df[df['msg_type'] == 'new_direction']
+    for i in range(0, len(direction_df)):
+        folium.Marker(
+            location=[direction_df.iloc[i]['gps_lat'], direction_df.iloc[i]['gps_long']],
+            popup=direction_df.iloc[i]['name'],
+            icon=folium.Icon(icon="glyphicon glyphicon-search", color='black', icon_color=direction_df.iloc[i]['device_type'])
+        ).add_to(map)
 
     new_map_name = "map" + str(time.time()) + ".html"
     map.save('static/' + new_map_name)
+
+    global image_used
+    global image_id
+    if image_id>2:
+        image_used.pop(1)
+    image_used.append(new_map_name)
+    image_id+=1
+
+    for filename in os.listdir('static/'):
+        if (filename.startswith('map') and filename not in image_used):
+            #print('static/' + filename)
+            os.remove('static/' + filename)
+
+
 
     return {'map_name': new_map_name}
 

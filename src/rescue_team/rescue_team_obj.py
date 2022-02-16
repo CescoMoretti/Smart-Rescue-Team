@@ -82,6 +82,7 @@ class Rescue_team_obj:
     def update_direction(self):        
         obtained_direction = requests.get("http://127.0.0.1:5000/get_direction/<"+ self.client_id+ ">")
         print("receved direction: " + str(obtained_direction.json()))
+        r = requests.post("http://127.0.0.1:5000/data/add/" + "{name:" + self.client_id + "msg_type: d")
         self.movement_param["direction"]= obtained_direction.json()["direction"]
         self.movement_param["step_lenght"]= obtained_direction.json()["step_lenght"]
         time.sleep(5)
