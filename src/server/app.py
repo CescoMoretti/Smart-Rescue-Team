@@ -123,10 +123,10 @@ def add_data(json_string):
                          ai_result_file= dict_tele.get('imgname'),
                          ai_result_ack = dict_tele.get('ack'))
     
-    mutex.acquire()
-    db.session.add(data)
-    db.session.commit()
-    mutex.release()
+    with mutex:
+        db.session.add(data)
+        db.session.commit()
+    
     #_________________________________decodifica immagine_______________________
     if dict_tele["msg_type"] == "ai_matching":
 

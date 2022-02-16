@@ -41,6 +41,7 @@ class Dog:
                         this_path+'/src/dog/YOLOv3/yolov3.cfg',
                         this_path+'/src/dog/YOLOv3/coco.names')
         self.mutex = Lock()
+        self.counter = 0
                         
         self.current_cord = Data_coordinates(44.8596, 10.7643) #Only for simulation purposes
         self.movement_param = {"direction": [random.uniform(-1,1), random.uniform(-1,1)], "step_lenght": 0.0005, "max_distance": 0.008, "start_coords": Data_coordinates(44.8596, 10.7643) }                
@@ -64,10 +65,13 @@ class Dog:
 
         msg = Msg_dog_matchingAI(self.client_id, self.read_coordinates(), encoded_img, imgname, ack)             
         self.publisher_ai.publish(msg.get_json_from_dict())
-        time.sleep(15)
+        time.sleep(10)
 
     def simulate_camera(self):
-        a = imgs[random.randint(0, (len(imgs) - 1))]
+        a = imgs[self.counter]
+        if self.counter == len(imgs)-1:
+            self.counter = 0
+        self.counter += 1
         self.mutex.acquire()
         shutil.copyfile(a, this_path+'/src/dog/camera_stream_simulator.jpg')
         self.mutex.release()
