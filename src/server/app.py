@@ -50,7 +50,8 @@ turbo = Turbo(app)
 app.config['SERVER_NAME'] = "127.0.0.1:5000"
 
 #detection image id
-detected_img_id = None
+detected_img_istance = None
+flag_match = False
 mutex = Lock()
 #dictionary to list all object
 objs_dict = {}
@@ -108,9 +109,11 @@ def index():
 #__________________________________add data_____________________
 @app.route('/data/add/<json_string>', methods=['POST'])
 def add_data(json_string):
-    global detected_img_id
+    global detected_img_istance
     global objs_dict
     global mutex
+    global flag_match 
+
     #_________________________________inserimento dati db________________________
     dict_tele = json.loads(json_string)
     data = Db_data_model(name= dict_tele['name'],
@@ -128,22 +131,24 @@ def add_data(json_string):
         db.session.commit()
     
     #_________________________________decodifica immagine_______________________
-    if dict_tele["msg_type"] == "ai_matching":
+    if flag_match == False:
+        if dict_tele["msg_type"] == "ai_matching":
 
-        if dict_tele['ack'] == True:
-            f = json.loads(request.data)
-            jpg_original = base64.b64decode(f['image'])
-            jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
-            img = cv2.imdecode(jpg_as_np, flags=1)
-            cv2.imwrite(this_path+'/static/predicted_imgs/positive/'+str(dict_tele['imgname'])+'.jpg', img)
-            detected_img_id = dict_tele
+            if dict_tele['ack'] == True:
+                f = json.loads(request.data)
+                jpg_original = base64.b64decode(f['image'])
+                jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
+                img = cv2.imdecode(jpg_as_np, flags=1)
+                cv2.imwrite(this_path+'/static/predicted_imgs/positive/'+str(dict_tele['imgname'])+'.jpg', img)
+                detected_img_istance = dict_tele
+                flag_match = True
 
-        else:
-            f = json.loads(request.data)
-            jpg_original = base64.b64decode(f['image'])
-            jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
-            img = cv2.imdecode(jpg_as_np, 1)
-            cv2.imwrite(this_path+'/static/predicted_imgs/negative/'+str(dict_tele['imgname'])+'.jpg', img)
+            else:
+                f = json.loads(request.data)
+                jpg_original = base64.b64decode(f['image'])
+                jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
+                img = cv2.imdecode(jpg_as_np, 1)
+                cv2.imwrite(this_path+'/static/predicted_imgs/negative/'+str(dict_tele['imgname'])+'.jpg', img)
     
 
     #____________________riempimento dizionario per la scelta della direzione______
@@ -172,64 +177,74 @@ def view_data():
 def send_direction(obj_name): 
     global time_direction_calc
     global mutex
-    
-    
-    if time.time() - time_direction_calc >= 10.0:
-        df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
-        #print(df)
-        objective_point = find_unexplored_space(df)
-        #print(objective_point)
-        df_team = pd.DataFrame.from_dict(objs_dict)
-        df_team = df_team.T
-        #print(df_team)
-        for index, row in df_team.iterrows():
-            ilat = row['last_lat']
-            ilong = row['last_long']
-            #row['distance'] = row[['last_lat', 'last_long']].sub(np.array(objective_point)).pow(2).sum(1).pow(0.5)
-            row['distance'] = math.hypot(ilong - objective_point[1], ilat - objective_point[0])
-        print(df_team)
-        print(objs_dict)
-        df_team['distance'] = pd.to_numeric(df_team['distance'])
-        print(type(df_team))
-        nearest_obj = df_team['distance'].idxmin()
-        #print(nearest_obj)
-        #nearest_obj= df_team.iloc[[id]]
-        objs_dict[nearest_obj]["direction"] = [objective_point[0] - objs_dict[nearest_obj]["last_lat"],
-                                                objective_point[1] - objs_dict[nearest_obj]["last_long"]]
-
-        Db_data_model.query.filter_by(name=nearest_obj).delete()
-        mutex.acquire()
-        db.session.commit()
-        mutex.release()
-        data = Db_data_model(name=nearest_obj,
-                            msg_type='new_direction',
-                            device_type=objs_dict[nearest_obj]['color'],
-                            gps_lat=objective_point[0],
-                            gps_long=objective_point[1],
-                            timestamp=time.time(),
-                            battery = "",
-                            ai_result_file = "",
-                            ai_result_ack = "")
-        mutex.acquire()
-        db.session.add(data)
-        db.session.commit()
-        mutex.release()
-
-        time_direction_calc = time.time()
-
+    global flag_match
+    global detected_img_istance
     #take extra simboles out    
     obj_name = obj_name.replace("<", "")
-    obj_name = obj_name.replace(">", "")    
-    if obj_name in objs_dict:
-        
-        direction = {"last_lat": objs_dict[obj_name]["last_lat"],
-                     "last_long": objs_dict[obj_name]["last_long"],
-                     "direction": objs_dict[obj_name]["direction"],
-                     "step_lenght": objs_dict[obj_name]["step_lenght"]}        
-    else:
-        direction = {"last_lat": None, "last_long": None, "direction": [1, 1], "step_lenght": 0.0001}        
+    obj_name = obj_name.replace(">", "") 
+    if flag_match == False:
+        if time.time() - time_direction_calc >= 10.0:
+            df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
+            #print(df)
+            objective_point = find_unexplored_space(df)
+            #print(objective_point)
+            df_team = pd.DataFrame.from_dict(objs_dict)
+            df_team = df_team.T
+            #print(df_team)
+            for index, row in df_team.iterrows():
+                ilat = row['last_lat']
+                ilong = row['last_long']
+                #row['distance'] = row[['last_lat', 'last_long']].sub(np.array(objective_point)).pow(2).sum(1).pow(0.5)
+                row['distance'] = math.hypot(ilong - objective_point[1], ilat - objective_point[0])
+            print(df_team)
+            print(objs_dict)
+            df_team['distance'] = pd.to_numeric(df_team['distance'])
+            print(type(df_team))
+            nearest_obj = df_team['distance'].idxmin()
+            #print(nearest_obj)
+            #nearest_obj= df_team.iloc[[id]]
+            objs_dict[nearest_obj]["direction"] = [objective_point[0] - objs_dict[nearest_obj]["last_lat"],
+                                                    objective_point[1] - objs_dict[nearest_obj]["last_long"]]
 
-    return direction # {key: objs_dict[obj_name][key] for key in objs_dict[obj_name].keys() & {'direction', 'step_lenght'}}
+            Db_data_model.query.filter_by(name=nearest_obj).delete()
+            mutex.acquire()
+            db.session.commit()
+            mutex.release()
+            data = Db_data_model(name=nearest_obj,
+                                msg_type='new_direction',
+                                device_type=objs_dict[nearest_obj]['color'],
+                                gps_lat=objective_point[0],
+                                gps_long=objective_point[1],
+                                timestamp=time.time(),
+                                battery = "",
+                                ai_result_file = "",
+                                ai_result_ack = "")
+            mutex.acquire()
+            db.session.add(data)
+            db.session.commit()
+            mutex.release()
+
+            time_direction_calc = time.time()
+
+           
+        if obj_name in objs_dict:
+            
+            direction = {"last_lat": objs_dict[obj_name]["last_lat"],
+                        "last_long": objs_dict[obj_name]["last_long"],
+                        "direction": objs_dict[obj_name]["direction"],
+                        "step_lenght": objs_dict[obj_name]["step_lenght"]}        
+        else:
+            direction = {"last_lat": None, "last_long": None, "direction": [1, 1], "step_lenght": 0.0001}
+
+    else:
+        print("match trovato mando tutti li")
+        objs_dict[obj_name]["direction"] = [detected_img_istance['gps']['lat']- objs_dict[obj_name]["last_lat"],
+                           detected_img_istance['gps']['long']- objs_dict[obj_name]["last_long"]]
+        direction = {"last_lat": objs_dict[obj_name]["last_lat"],
+                        "last_long": objs_dict[obj_name]["last_long"],
+                        "direction": objs_dict[obj_name]["direction"],
+                        "step_lenght": objs_dict[obj_name]["step_lenght"]}  
+    return direction 
 
 #_______________________________visualize the map______________________________
 @app.route('/view_map', methods=['GET'])
@@ -323,10 +338,10 @@ def create_map():
                 os.remove('static/' + filename)
 
     #--------updating img----------
-        global detected_img_id
+        global detected_img_istance
         filename_img = 'static/predicted_imgs/positive/example.jpg'
-        if detected_img_id != None:
-            filename_img = 'static/predicted_imgs/positive/'+str(detected_img_id['imgname'])+'.jpg'
+        if detected_img_istance != None:
+            filename_img = 'static/predicted_imgs/positive/'+str(detected_img_istance['imgname'])+'.jpg'
 
         return {'map_name': new_map_name, 'file_name': filename_img}
 
