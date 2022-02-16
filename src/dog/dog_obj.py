@@ -18,6 +18,7 @@ import shutil
 import os
 import time
 import cv2
+from threading import Lock
 
 #classe che implementa tutti i comportamenti dell'oggetto iot cane
 this_path = os.getcwd()
@@ -39,6 +40,7 @@ class Dog:
         self.detector = Detector(this_path+'/src/dog/YOLOv3/yolov3.weights',
                         this_path+'/src/dog/YOLOv3/yolov3.cfg',
                         this_path+'/src/dog/YOLOv3/coco.names')
+        self.mutex = Lock()
                         
         
 
@@ -48,7 +50,8 @@ class Dog:
         time.sleep(4)
 
     def send_data_ai(self):
-        imgname, imgpath_pred, ack = self.detector.detectMissingPeople(imgpath)
+        with self.mutex:
+            imgname, imgpath_pred, ack = self.detector.detectMissingPeople(imgpath)
 
         imgcv = cv2.imread(imgpath_pred)
         print(type(imgcv))
@@ -63,7 +66,9 @@ class Dog:
 
     def simulate_camera(self):
         a = imgs[random.randint(0, (len(imgs) - 1))]
+        self.mutex.acquire()
         shutil.copyfile(a, this_path+'/src/dog/camera_stream_simulator.jpg')
+        self.mutex.release()
         time.sleep(4)
     
 

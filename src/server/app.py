@@ -32,9 +32,9 @@ import time
 from threading import Lock
 
 
-
 #create a flask instance
 app = Flask(__name__)
+
 
 this_path = os.getcwd()
 #Key for forms
@@ -140,6 +140,7 @@ def add_data(json_string):
             jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
             img = cv2.imdecode(jpg_as_np, 1)
             cv2.imwrite(this_path+'/static/predicted_imgs/negative/'+str(dict_tele['imgname'])+'.jpg', img)
+    
 
     #____________________riempimento dizionario per la scelta della direzione______
     if dict_tele["device_type"] == "team": #type of object that can be controlled
@@ -203,7 +204,7 @@ def send_direction(obj_name):
 #_______________________________visualize the map______________________________
 @app.route('/view_map', methods=['GET'])
 def view_map():
-    filename_img = 'static/predicted_imgs/positive/example.jpg'
+    filename_img = '/static/predicted_imgs/positive/example.jpg'
     return render_template('view_map.html', file_name = filename_img)
 
 #_______________________________________add map manualy_________________________ 
@@ -261,11 +262,11 @@ def create_map():
         stationArr = df[['gps_lat', 'gps_long']].values
         m.add_child(plugins.HeatMap(stationArr, radius=15))
         new_map_name = "map" + str(time.time()) + ".html"
-        for filename in os.listdir('static/'):
-            if (filename.startswith('map')):
+        #for filename in os.listdir('static/'):
+            #if (filename.startswith('map')):
                 #print('static/' + filename)
                 #os.remove('static/' + filename)
-                pass
+                #pass
         
         print('STO AGGIORNANDO')
 
