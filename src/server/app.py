@@ -197,7 +197,7 @@ def send_direction(obj_name):
         objs_dict[nearest_obj]["direction"] = [objective_point[0] - objs_dict[nearest_obj]["last_lat"],
                                                 objective_point[1] - objs_dict[nearest_obj]["last_long"]]
 
-        Db_data_model.query.filter_by(name=nearest_obj).delete()
+        Db_data_model.query.filter_by(name=nearest_obj, msg_type='new_direction' ).delete()
         mutex.acquire()
         db.session.commit()
         mutex.release()
@@ -288,21 +288,22 @@ def create_map():
         map = folium.Map(location=telemetry_data[['gps_lat', 'gps_long']].mean().values, zoom_start=13)
         folium.plugins.HeatMap(telemetry_data[['gps_lat', 'gps_long']].values).add_to(map)
 
-        # ML_df = df[df['msg_type'] == 'ai_result']
-        # ML_df = ML_df[ML_df['ai_result_ack'] == 'True']
-        # for i in range(0, len(ML_df)):
-        #     folium.Marker(
-        #         location=[ML_df.iloc[i]['gps_lat'], ML_df.iloc[i]['gps_long']],
-        #         popup=ML_df.iloc[i]['name'],
-        #     ).add_to(map)
+        ML_df = df[df['msg_type'] == 'ai_result']
+        ML_df = ML_df[ML_df['ai_result_ack'] == 'True']
+        for i in range(0, len(ML_df)):
+            folium.Marker(
+                location=[ML_df.iloc[i]['gps_lat'], ML_df.iloc[i]['gps_long']],
+                popup=ML_df.iloc[i]['name'],
+                icon=folium.Icon(icon="glyphicon glyphicon-ok", color='black')
+            ).add_to(map)
 
-        # direction_df = df[df['msg_type'] == 'new_direction']
-        # for i in range(0, len(direction_df)):
-        #     folium.Marker(
-        #         location=[direction_df.iloc[i]['gps_lat'], direction_df.iloc[i]['gps_long']],
-        #         popup=direction_df.iloc[i]['name'],
-        #         icon=folium.Icon(icon="glyphicon glyphicon-search", color='black', icon_color=direction_df.iloc[i]['device_type'])
-        #     ).add_to(map)
+        direction_df = df[df['msg_type'] == 'new_direction']
+        for i in range(0, len(direction_df)):
+            folium.Marker(
+                location=[direction_df.iloc[i]['gps_lat'], direction_df.iloc[i]['gps_long']],
+                popup=direction_df.iloc[i]['name'],
+                icon=folium.Icon(icon="glyphicon glyphicon-search", color='black', icon_color=direction_df.iloc[i]['device_type'])
+            ).add_to(map)
 
         new_map_name = "map" + str(time.time()) + ".html"
         map.save('static/' + new_map_name)
