@@ -3,6 +3,8 @@ import os
 from asyncio.windows_events import NULL
 from pathlib import Path
 import sys
+
+from sqlalchemy import false
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 
@@ -27,6 +29,7 @@ import numpy as np
 from turbo_flask import Turbo
 import threading
 import time
+from threading import Lock
 
 
 
@@ -45,6 +48,9 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 turbo = Turbo(app)
 app.config['SERVER_NAME'] = "127.0.0.1:5000"
 
+#detection image id
+detected_img_id = None
+mutex = Lock()
 #dictionary to list all object
 objs_dict = {}
 time_direction_calc = time.time()
@@ -54,6 +60,7 @@ class Image_form(FlaskForm):
     image = FileField('Map', validators=[FileRequired(), FileAllowed(['jpg', 'png'], 'Images only!')])
 
 print(this_path)
+
 
 
 #App database
@@ -97,7 +104,9 @@ def index():
 #__________________________________add data_____________________
 @app.route('/data/add/<json_string>', methods=['POST'])
 def add_data(json_string):
+    global detected_img_id
     global objs_dict
+    global mutex
     #_________________________________inserimento dati db________________________
     dict_tele = json.loads(json_string)
     data = Db_data_model(name= dict_tele['name'],
@@ -109,8 +118,11 @@ def add_data(json_string):
                          battery= dict_tele.get('battery'),
                          ai_result_file= dict_tele.get('imgname'),
                          ai_result_ack = dict_tele.get('ack'))
+    
+    mutex.acquire()
     db.session.add(data)
     db.session.commit()
+    mutex.release()
     #_________________________________decodifica immagine_______________________
     if dict_tele["msg_type"] == "ai_matching":
 
@@ -120,7 +132,8 @@ def add_data(json_string):
             jpg_as_np = np.frombuffer(jpg_original, dtype=np.uint8)
             img = cv2.imdecode(jpg_as_np, flags=1)
             cv2.imwrite(this_path+'/static/predicted_imgs/positive/'+str(dict_tele['imgname'])+'.jpg', img)
-            print('Detected People by dog '+str(dict_tele['name'])+'!\nAt time '+str(dict_tele['timestamp']))
+            detected_img_id = dict_tele
+
         else:
             f = json.loads(request.data)
             jpg_original = base64.b64decode(f['image'])
@@ -190,8 +203,8 @@ def send_direction(obj_name):
 #_______________________________visualize the map______________________________
 @app.route('/view_map', methods=['GET'])
 def view_map():
-    
-    return render_template('view_map.html')
+    filename_img = 'static/predicted_imgs/positive/example.jpg'
+    return render_template('view_map.html', file_name = filename_img)
 
 #_______________________________________add map manualy_________________________ 
 @app.route('/images', methods=['GET', 'POST'])
@@ -233,26 +246,38 @@ def before_first_request():
 def update_load():
     with app.app_context():
         while True:
-            time.sleep(10)
+            time.sleep(5)
             turbo.push(turbo.replace(render_template('just_map.html'), 'load'))
+            #turbo.push(turbo.replace(render_template('just_img.html'), 'img_load'))
 
 @app.context_processor
 def create_map():
-    df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
-    m = folium.Map([44.847343, 10.722371], zoom_start=13)
-    stationArr = df[['gps_lat', 'gps_long']].values
-    m.add_child(plugins.HeatMap(stationArr, radius=15))
+    global mutex
+    with mutex:
+        #mutex.acquire()
+        df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
+        #mutex.release()
+        m = folium.Map([44.847343, 10.722371], zoom_start=13)
+        stationArr = df[['gps_lat', 'gps_long']].values
+        m.add_child(plugins.HeatMap(stationArr, radius=15))
+        new_map_name = "map" + str(time.time()) + ".html"
+        for filename in os.listdir('static/'):
+            if (filename.startswith('map')):
+                #print('static/' + filename)
+                #os.remove('static/' + filename)
+                pass
+        
+        print('STO AGGIORNANDO')
 
-    new_map_name = "map" + str(time.time()) + ".html"
+        m.save('static/' + new_map_name)
 
-    for filename in os.listdir('static/'):
-        if (filename.startswith('map')):
-            #print('static/' + filename)
-            os.remove('static/' + filename)
+        #--------updating img----------
+        global detected_img_id
+        filename_img = 'static/predicted_imgs/positive/example.jpg'
+        if detected_img_id != None:
+            filename_img = 'static/predicted_imgs/positive/'+str(detected_img_id['imgname'])+'.jpg'
 
-    m.save('static/' + new_map_name)
-
-    return {'map_name': new_map_name}
+        return {'map_name': new_map_name, 'file_name': filename_img}
 
 
 #______________________________route to stop icon error_______________

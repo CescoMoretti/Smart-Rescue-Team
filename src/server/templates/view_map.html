@@ -2,15 +2,13 @@
 
 {% block content%}
 
-
-    <div class="box">
-    <div id="load" class="load">
-    <iframe src="{{ url_for('static', filename=map_name) }}" height=0  width=0 display="block" border-style = "none"></iframe>
-    </div>
-    </div>
-
-    <div class="box1">
-        <img src="{{ url_for('static', filename='predicted_imgs/example.jpg') }}" width=400>    
+    <div id="load" class="load" width=1400>
+            <div class="box">
+                <iframe src="{{ url_for('static', filename=map_name) }}" height=0  width=0 display="block" border-style = "none"></iframe>
+            </div>
+            <div class="box1">
+                <img src={{ file_name }} width=400> 
+            </div>
     </div>
 
 {% endblock %}

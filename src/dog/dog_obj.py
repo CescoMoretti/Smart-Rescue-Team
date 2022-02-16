@@ -45,7 +45,7 @@ class Dog:
     def send_data_telemetry(self): 
         msg = Msg_dog_telemetry(self.client_id, self.read_coordinates(), self.read_battery())             
         self.publisher_tel.publish(msg.get_json_from_dict())
-        time.sleep(2)
+        time.sleep(4)
 
     def send_data_ai(self):
         imgname, imgpath_pred, ack = self.detector.detectMissingPeople(imgpath)
