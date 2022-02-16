@@ -26,6 +26,7 @@ import numpy as np
 from turbo_flask import Turbo
 import threading
 import time
+import random
 
 
 
@@ -115,8 +116,10 @@ def add_data(json_string):
     #____________________riempimento dizionario per la scelta della direzione______
     if dict_tele["device_type"] == "team": #type of object that can be controlled
         if dict_tele['name'] not in objs_dict: #if not exist in dictionary
-            #TODO set direction in a smarter way 
-            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "distance": 0, "direction": [1,1], "step_lenght": 0.0005}
+            #TODO set direction in a smarter way
+            r = lambda: random.randint(0, 255)
+            color = ('#%02X%02X%02X' % (r(), r(), r()))
+            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "distance": 0, "direction": [1,1], "step_lenght": 0.0005, 'color': color}
         
         if dict_tele["msg_type"] == "telemetry":
             objs_dict[dict_tele['name']]["last_lat"] = dict_tele['gps']['lat']
@@ -224,18 +227,28 @@ def update_load():
 def create_map():
     df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
 
-    telemetry_data = df[df['msg_type']=='telemetry']
-    map = folium.Map(location=telemetry_data[['gps_lat', 'gps_long']].mean().values, zoom_start=14)
-    folium.plugins.HeatMap(telemetry_data[['gps_lat', 'gps_long']].values).add_to(map)
+    telemetry_df = df[df['msg_type']=='telemetry']
+    map = folium.Map(location=telemetry_df[['gps_lat', 'gps_long']].mean().values, zoom_start=14)
+    folium.plugins.HeatMap(telemetry_df[['gps_lat', 'gps_long']].values).add_to(map)
 
-    ML_data = df[df['msg_type'] == 'ai_result']
-    ML_data = ML_data[ML_data['ai_result_ack'] == 'True']
-
-    for i in range(0, len(ML_data)):
+    ML_df = df[df['msg_type'] == 'ai_result']
+    ML_df = ML_df[ML_df['ai_result_ack'] == 'True']
+    for i in range(0, len(ML_df)):
         folium.Marker(
-            location=[ML_data.iloc[i]['gps_lat'], ML_data.iloc[i]['gps_long']],
-            popup=ML_data.iloc[i]['name'],
+            location=[ML_df.iloc[i]['gps_lat'], ML_df.iloc[i]['gps_long']],
+            popup=ML_df.iloc[i]['name'],
         ).add_to(map)
+
+    direction_df = df[df['msg_type'] == 'new_direction']
+    for i in range(0, len(direction_df)):
+        folium.Marker(
+            location=[direction_df.iloc[i]['gps_lat'], direction_df.iloc[i]['gps_long']],
+            popup=direction_df.iloc[i]['name'],
+            icon=folium.Icon(icon="glyphicon glyphicon-search", color=direction_df.iloc[i]['device_type'])
+        ).add_to(map)
+
+
+
 
     for filename in os.listdir('static/'):
         if (filename.startswith('map')):

@@ -5,6 +5,7 @@ import sys
 path = str(Path(Path(__file__).parent.absolute()).parent.absolute())
 sys.path.insert(0, path)
 from utils.msgs.msg_team_telemetry import Msg_team_telemetry
+from utils.msgs.msg_team_marker import Msg_team_marker
 from utils.msgs.msg_dog_matchingAI import Msg_dog_matchingAI
 from utils.models.subscriber_mqtt import Subscriber_mqtt
 from utils.models.thread_model import Thread_model
@@ -83,7 +84,11 @@ class Rescue_team_obj:
         obtained_direction = requests.get("http://127.0.0.1:5000/get_direction/<"+ self.client_id+ ">")
         print("receved direction: " + str(obtained_direction.json()))
         self.movement_param["direction"]= obtained_direction.json()["direction"]
-        self.movement_param["step_lenght"]= obtained_direction.json()["step_lenght"]
+        self.movement_param["step_lenght"] = obtained_direction.json()["step_lenght"]
+        msg = Msg_team_marker(self.client_id, obtained_direction.json()["color"], obtained_direction.json()["direction"])
+        r = requests.post("http://127.0.0.1:5000/data/add/" + msg.get_json_from_dict())
+        print("data team marker sended to server: " + str(r.status_code), r.reason)
+        #r = requests.post("http://127.0.0.1:5000/data/add/{name:" + self.client_id + ",msg_type: new_direction, device_type:"+obtained_direction.json()["color"]+"gps:{lat:" + self.movement_param["direction"][0] + ", long:" + self.movement_param["direction"][1]+"}},")
         time.sleep(5)
         
 
