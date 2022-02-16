@@ -12,8 +12,6 @@ from utils.data_structures.data_coordinates import Data_coordinates
 import time
 import requests
 import json, os
-import base64
-import cv2
 import numpy as np
 
 this_path = os.getcwd()
@@ -34,8 +32,8 @@ class Rescue_team_obj:
 
 
     def start(self):
-        #tele_thread = Thread_model('telemetry', self.send_data_telemetry)
-        #tele_thread.start()
+        tele_thread = Thread_model('telemetry', self.send_data_telemetry)
+        tele_thread.start()
         update_direction_thread = Thread_model('telemetry', self.update_direction)
         update_direction_thread.start()
         self.subscriber_tel.connect()
@@ -46,7 +44,7 @@ class Rescue_team_obj:
         
         except KeyboardInterrupt:
             print("exiting")
-            #tele_thread.join()
+            tele_thread.join()
             update_direction_thread.join()
             self.subscriber_tel.disconnect()
             self.subscriber_ai.disconnect()
@@ -75,7 +73,6 @@ class Rescue_team_obj:
     def update_direction(self):        
         obtained_direction = requests.get("http://127.0.0.1:5000/get_direction/<"+ self.client_id+ ">")
         print("receved direction: " + str(obtained_direction.json()))
-        r = requests.post("http://127.0.0.1:5000/data/add/" + "{name:" + self.client_id + "msg_type: d")
         self.movement_param["direction"]= obtained_direction.json()["direction"]
         self.movement_param["step_lenght"]= obtained_direction.json()["step_lenght"]
         time.sleep(5)
@@ -90,4 +87,3 @@ class Rescue_team_obj:
             print("now coordinates: " + str(self.current_cord.get_dict()))
         return self.current_cord
         
-  

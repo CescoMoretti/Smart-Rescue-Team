@@ -171,10 +171,10 @@ def view_data():
 @app.route('/get_direction/<obj_name>', methods=['GET'])
 def send_direction(obj_name): 
     global time_direction_calc
+    global mutex
     
     
     if time.time() - time_direction_calc >= 10.0:
-        
         df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
         #print(df)
         objective_point = find_unexplored_space(df)
@@ -187,8 +187,10 @@ def send_direction(obj_name):
             ilong = row['last_long']
             #row['distance'] = row[['last_lat', 'last_long']].sub(np.array(objective_point)).pow(2).sum(1).pow(0.5)
             row['distance'] = math.hypot(ilong - objective_point[1], ilat - objective_point[0])
-        #print(df_team)
+        print(df_team)
+        print(objs_dict)
         df_team['distance'] = pd.to_numeric(df_team['distance'])
+        print(type(df_team))
         nearest_obj = df_team['distance'].idxmin()
         #print(nearest_obj)
         #nearest_obj= df_team.iloc[[id]]
@@ -196,19 +198,22 @@ def send_direction(obj_name):
                                                 objective_point[1] - objs_dict[nearest_obj]["last_long"]]
 
         Db_data_model.query.filter_by(name=nearest_obj).delete()
+        mutex.acquire()
         db.session.commit()
-
+        mutex.release()
         data = Db_data_model(name=nearest_obj,
-                             msg_type='new_direction',
-                             device_type=objs_dict[nearest_obj]['color'],
-                             gps_lat=objective_point[0],
-                             gps_long=objective_point[1],
-                             timestamp=time.time(),
-                             battery = "",
-                             ai_result_file = "",
-                             ai_result_ack = "")
+                            msg_type='new_direction',
+                            device_type=objs_dict[nearest_obj]['color'],
+                            gps_lat=objective_point[0],
+                            gps_long=objective_point[1],
+                            timestamp=time.time(),
+                            battery = "",
+                            ai_result_file = "",
+                            ai_result_ack = "")
+        mutex.acquire()
         db.session.add(data)
         db.session.commit()
+        mutex.release()
 
         time_direction_calc = time.time()
 
@@ -283,21 +288,21 @@ def create_map():
         map = folium.Map(location=telemetry_data[['gps_lat', 'gps_long']].mean().values, zoom_start=13)
         folium.plugins.HeatMap(telemetry_data[['gps_lat', 'gps_long']].values).add_to(map)
 
-        ML_df = df[df['msg_type'] == 'ai_result']
-        ML_df = ML_df[ML_df['ai_result_ack'] == 'True']
-        for i in range(0, len(ML_df)):
-            folium.Marker(
-                location=[ML_df.iloc[i]['gps_lat'], ML_df.iloc[i]['gps_long']],
-                popup=ML_df.iloc[i]['name'],
-            ).add_to(map)
+        # ML_df = df[df['msg_type'] == 'ai_result']
+        # ML_df = ML_df[ML_df['ai_result_ack'] == 'True']
+        # for i in range(0, len(ML_df)):
+        #     folium.Marker(
+        #         location=[ML_df.iloc[i]['gps_lat'], ML_df.iloc[i]['gps_long']],
+        #         popup=ML_df.iloc[i]['name'],
+        #     ).add_to(map)
 
-        direction_df = df[df['msg_type'] == 'new_direction']
-        for i in range(0, len(direction_df)):
-            folium.Marker(
-                location=[direction_df.iloc[i]['gps_lat'], direction_df.iloc[i]['gps_long']],
-                popup=direction_df.iloc[i]['name'],
-                icon=folium.Icon(icon="glyphicon glyphicon-search", color='black', icon_color=direction_df.iloc[i]['device_type'])
-            ).add_to(map)
+        # direction_df = df[df['msg_type'] == 'new_direction']
+        # for i in range(0, len(direction_df)):
+        #     folium.Marker(
+        #         location=[direction_df.iloc[i]['gps_lat'], direction_df.iloc[i]['gps_long']],
+        #         popup=direction_df.iloc[i]['name'],
+        #         icon=folium.Icon(icon="glyphicon glyphicon-search", color='black', icon_color=direction_df.iloc[i]['device_type'])
+        #     ).add_to(map)
 
         new_map_name = "map" + str(time.time()) + ".html"
         map.save('static/' + new_map_name)
@@ -314,7 +319,7 @@ def create_map():
                 #print('static/' + filename)
                 os.remove('static/' + filename)
 
-            #--------updating img----------
+    #--------updating img----------
         global detected_img_id
         filename_img = 'static/predicted_imgs/positive/example.jpg'
         if detected_img_id != None:
