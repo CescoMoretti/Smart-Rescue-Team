@@ -30,6 +30,7 @@ from turbo_flask import Turbo
 import threading
 import time
 from threading import Lock
+import random
 
 
 #create a flask instance
@@ -54,6 +55,9 @@ mutex = Lock()
 #dictionary to list all object
 objs_dict = {}
 time_direction_calc = time.time()
+image_used = []
+image_id = 0
+
 #Create form class
 class Image_form(FlaskForm):
     #name = StringField('Name', validators=[DataRequired()])
@@ -145,8 +149,10 @@ def add_data(json_string):
     #____________________riempimento dizionario per la scelta della direzione______
     if dict_tele["device_type"] == "team": #type of object that can be controlled
         if dict_tele['name'] not in objs_dict: #if not exist in dictionary
-            #TODO set direction in a smarter way 
-            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "distance": 0, "direction": [1,1], "steplenght": 0.0001}
+            #TODO set direction in a smarter way
+            r = lambda: random.randint(100, 255)
+            color = ('#%02X%02X%02X' % (r(), r(), r()))
+            objs_dict[dict_tele['name']] = {"last_lat": 0, "last_long": 0, "distance": 0, "direction": [1,1], "step_lenght": 0.0005, 'color': color}
         
         if dict_tele["msg_type"] == "telemetry":
             objs_dict[dict_tele['name']]["last_lat"] = dict_tele['gps']['lat']
@@ -165,31 +171,47 @@ def view_data():
 @app.route('/get_direction/<obj_name>', methods=['GET'])
 def send_direction(obj_name): 
     global time_direction_calc
-    print(time_direction_calc)
-    print("brake 1")
+    
+    
     if time.time() - time_direction_calc >= 10.0:
-        print("brake 2")
+        
         df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
-        print(df)
+        #print(df)
         objective_point = find_unexplored_space(df)
-        print(objective_point)
+        #print(objective_point)
         df_team = pd.DataFrame.from_dict(objs_dict)
         df_team = df_team.T
-        print(df_team)
+        #print(df_team)
         for index, row in df_team.iterrows():
             ilat = row['last_lat']
             ilong = row['last_long']
             #row['distance'] = row[['last_lat', 'last_long']].sub(np.array(objective_point)).pow(2).sum(1).pow(0.5)
             row['distance'] = math.hypot(ilong - objective_point[1], ilat - objective_point[0])
-        print(df_team)
+        #print(df_team)
         df_team['distance'] = pd.to_numeric(df_team['distance'])
         nearest_obj = df_team['distance'].idxmin()
-        print(nearest_obj)
+        #print(nearest_obj)
         #nearest_obj= df_team.iloc[[id]]
-        objs_dict[nearest_obj]["direction"] = [objs_dict[nearest_obj]["last_lat"] - objective_point[0],
-                                               objs_dict[nearest_obj]["last_long"] - objective_point[1]] 
+        objs_dict[nearest_obj]["direction"] = [objective_point[0] - objs_dict[nearest_obj]["last_lat"],
+                                                objective_point[1] - objs_dict[nearest_obj]["last_long"]]
+
+        Db_data_model.query.filter_by(name=nearest_obj).delete()
+        db.session.commit()
+
+        data = Db_data_model(name=nearest_obj,
+                             msg_type='new_direction',
+                             device_type=objs_dict[nearest_obj]['color'],
+                             gps_lat=objective_point[0],
+                             gps_long=objective_point[1],
+                             timestamp=time.time(),
+                             battery = "",
+                             ai_result_file = "",
+                             ai_result_ack = "")
+        db.session.add(data)
+        db.session.commit()
+
         time_direction_calc = time.time()
-    
+
     #take extra simboles out    
     obj_name = obj_name.replace("<", "")
     obj_name = obj_name.replace(">", "")    
@@ -197,9 +219,9 @@ def send_direction(obj_name):
         
         direction = objs_dict[obj_name]        
     else:
-        direction = {"last_lat": None, "last_long": None, "direction": [1, 1], "steplenght": 0.0001}        
+        direction = {"last_lat": None, "last_long": None, "direction": [1, 1], "step_lenght": 0.0001}        
 
-    return direction # {key: objs_dict[obj_name][key] for key in objs_dict[obj_name].keys() & {'direction', 'steplenght'}}
+    return direction # {key: objs_dict[obj_name][key] for key in objs_dict[obj_name].keys() & {'direction', 'step_lenght'}}
 
 #_______________________________visualize the map______________________________
 @app.route('/view_map', methods=['GET'])
@@ -255,24 +277,44 @@ def update_load():
 def create_map():
     global mutex
     with mutex:
-        #mutex.acquire()
         df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
-        #mutex.release()
-        m = folium.Map([44.847343, 10.722371], zoom_start=13)
-        stationArr = df[['gps_lat', 'gps_long']].values
-        m.add_child(plugins.HeatMap(stationArr, radius=15))
+
+        telemetry_data = df[df['msg_type']=='telemetry']
+        map = folium.Map(location=telemetry_data[['gps_lat', 'gps_long']].mean().values, zoom_start=13)
+        folium.plugins.HeatMap(telemetry_data[['gps_lat', 'gps_long']].values).add_to(map)
+
+        ML_df = df[df['msg_type'] == 'ai_result']
+        ML_df = ML_df[ML_df['ai_result_ack'] == 'True']
+        for i in range(0, len(ML_df)):
+            folium.Marker(
+                location=[ML_df.iloc[i]['gps_lat'], ML_df.iloc[i]['gps_long']],
+                popup=ML_df.iloc[i]['name'],
+            ).add_to(map)
+
+        direction_df = df[df['msg_type'] == 'new_direction']
+        for i in range(0, len(direction_df)):
+            folium.Marker(
+                location=[direction_df.iloc[i]['gps_lat'], direction_df.iloc[i]['gps_long']],
+                popup=direction_df.iloc[i]['name'],
+                icon=folium.Icon(icon="glyphicon glyphicon-search", color='black', icon_color=direction_df.iloc[i]['device_type'])
+            ).add_to(map)
+
         new_map_name = "map" + str(time.time()) + ".html"
-        #for filename in os.listdir('static/'):
-            #if (filename.startswith('map')):
+        map.save('static/' + new_map_name)
+
+        global image_used
+        global image_id
+        if image_id>2:
+            image_used.pop(1)
+        image_used.append(new_map_name)
+        image_id+=1
+
+        for filename in os.listdir('static/'):
+            if (filename.startswith('map') and filename not in image_used):
                 #print('static/' + filename)
-                #os.remove('static/' + filename)
-                #pass
-        
-        print('STO AGGIORNANDO')
+                os.remove('static/' + filename)
 
-        m.save('static/' + new_map_name)
-
-        #--------updating img----------
+            #--------updating img----------
         global detected_img_id
         filename_img = 'static/predicted_imgs/positive/example.jpg'
         if detected_img_id != None:

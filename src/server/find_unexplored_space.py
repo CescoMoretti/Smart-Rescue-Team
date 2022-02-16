@@ -22,7 +22,7 @@ def find_unexplored_space(df):
         a,b = spatial.KDTree(df.values).query(mb[i])
         d.append(a)
         t.append(b)
-
+    
     max = np.max(d)
     id = d.index(max)
     result = mb[id]
