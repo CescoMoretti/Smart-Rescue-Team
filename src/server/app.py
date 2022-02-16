@@ -261,7 +261,7 @@ def create_map():
         stationArr = df[['gps_lat', 'gps_long']].values
         m.add_child(plugins.HeatMap(stationArr, radius=15))
         new_map_name = "map" + str(time.time()) + ".html"
-        for filename in os.listdir('static/'):
+        for filename in os.listdir('src/server/static/'):
             if (filename.startswith('map')):
                 #print('static/' + filename)
                 #os.remove('static/' + filename)
@@ -269,13 +269,13 @@ def create_map():
         
         print('STO AGGIORNANDO')
 
-        m.save('static/' + new_map_name)
+        m.save('src/server/static/' + new_map_name)
 
         #--------updating img----------
         global detected_img_id
-        filename_img = 'static/predicted_imgs/positive/example.jpg'
+        filename_img = 'src/server/static/predicted_imgs/positive/example.jpg'
         if detected_img_id != None:
-            filename_img = 'static/predicted_imgs/positive/'+str(detected_img_id['imgname'])+'.jpg'
+            filename_img = 'src/server/static/predicted_imgs/positive/'+str(detected_img_id['imgname'])+'.jpg'
 
         return {'map_name': new_map_name, 'file_name': filename_img}
 
