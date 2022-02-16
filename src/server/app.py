@@ -222,7 +222,10 @@ def send_direction(obj_name):
     obj_name = obj_name.replace(">", "")    
     if obj_name in objs_dict:
         
-        direction = objs_dict[obj_name]        
+        direction = {"last_lat": objs_dict[obj_name]["last_lat"],
+                     "last_long": objs_dict[obj_name]["last_long"],
+                     "direction": objs_dict[obj_name]["direction"],
+                     "step_lenght": objs_dict[obj_name]["step_lenght"]}        
     else:
         direction = {"last_lat": None, "last_long": None, "direction": [1, 1], "step_lenght": 0.0001}        
 
