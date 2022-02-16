@@ -32,8 +32,8 @@ class Rescue_team_obj:
 
 
     def start(self):
-        tele_thread = Thread_model('telemetry', self.send_data_telemetry)
-        tele_thread.start()
+        #tele_thread = Thread_model('telemetry', self.send_data_telemetry)
+        #tele_thread.start()
         update_direction_thread = Thread_model('telemetry', self.update_direction)
         update_direction_thread.start()
         self.subscriber_tel.connect()
@@ -44,7 +44,7 @@ class Rescue_team_obj:
         
         except KeyboardInterrupt:
             print("exiting")
-            tele_thread.join()
+            #tele_thread.join()
             update_direction_thread.join()
             self.subscriber_tel.disconnect()
             self.subscriber_ai.disconnect()

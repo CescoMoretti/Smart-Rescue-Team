@@ -225,7 +225,7 @@ def create_map():
     df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
 
     telemetry_data = df[df['msg_type']=='telemetry']
-    map = folium.Map(location=telemetry_data[['gps_lat', 'gps_long']].mean().values, zoom_start=14)
+    map = folium.Map(location=telemetry_data[['gps_lat', 'gps_long']].mean().values, zoom_start=13)
     folium.plugins.HeatMap(telemetry_data[['gps_lat', 'gps_long']].values).add_to(map)
 
     ML_data = df[df['msg_type'] == 'ai_result']
