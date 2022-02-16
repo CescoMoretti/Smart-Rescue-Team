@@ -64,17 +64,17 @@ class Dog:
         tele_thread = Thread_model('telemetry', self.send_data_telemetry)
         tele_thread.start()
         time.sleep(1)
-        #ai_thread = Thread_model('ai_data', self.send_data_ai)
-        #ai_thread.start()
-        #cam_thread = Thread_model('cam_simulation', self.simulate_camera)
-        #cam_thread.start()
+        ai_thread = Thread_model('ai_data', self.send_data_ai)
+        ai_thread.start()
+        cam_thread = Thread_model('cam_simulation', self.simulate_camera)
+        cam_thread.start()
         try:
             while True:
                 time.sleep(2)
         except KeyboardInterrupt:
             tele_thread.join()
-            #ai_thread.join()
-            #cam_thread.join()
+            ai_thread.join()
+            cam_thread.join()
         
     
     def read_coordinates(self):
