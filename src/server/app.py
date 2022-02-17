@@ -116,6 +116,7 @@ def add_data(json_string):
 
     #_________________________________inserimento dati db________________________
     dict_tele = json.loads(json_string)
+    print(dict_tele)
     data = Db_data_model(name= dict_tele['name'],
                          msg_type = dict_tele["msg_type"],
                          device_type = dict_tele["device_type"],
@@ -179,6 +180,7 @@ def send_direction(obj_name):
     global mutex
     global flag_match
     global detected_img_istance
+    global objs_dict
     #take extra simboles out    
     obj_name = obj_name.replace("<", "")
     obj_name = obj_name.replace(">", "") 
@@ -196,8 +198,8 @@ def send_direction(obj_name):
                 ilong = row['last_long']
                 #row['distance'] = row[['last_lat', 'last_long']].sub(np.array(objective_point)).pow(2).sum(1).pow(0.5)
                 row['distance'] = math.hypot(ilong - objective_point[1], ilat - objective_point[0])
-            print(df_team)
-            print(objs_dict)
+            #print(df_team)
+            #print(objs_dict)
             df_team['distance'] = pd.to_numeric(df_team['distance'])
             print(type(df_team))
             nearest_obj = df_team['distance'].idxmin()
