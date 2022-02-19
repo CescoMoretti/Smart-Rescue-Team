@@ -65,7 +65,7 @@ class Dog:
 
         msg = Msg_dog_matchingAI(self.client_id, self.read_coordinates(), encoded_img, imgname, ack)             
         self.publisher_ai.publish(msg.get_json_from_dict())
-        time.sleep(10)
+        time.sleep(8)
 
     def simulate_camera(self):
         a = imgs[self.counter]
@@ -75,7 +75,7 @@ class Dog:
         self.mutex.acquire()
         shutil.copyfile(a, this_path+'/src/dog/camera_stream_simulator.jpg')
         self.mutex.release()
-        time.sleep(4)
+        time.sleep(9)
     
 
     def activate_dog(self):

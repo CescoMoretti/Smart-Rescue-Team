@@ -127,10 +127,10 @@ def add_data(json_string):
                          ai_result_file= dict_tele.get('imgname'),
                          ai_result_ack = dict_tele.get('ack'))
     
-    with mutex:
-        db.session.add(data)
-        db.session.commit()
-    
+    mutex.acquire()
+    db.session.add(data)
+    db.session.commit()
+    mutex.release()
     #_________________________________decodifica immagine_______________________
     if flag_match == False:
         if dict_tele["msg_type"] == "ai_matching":
@@ -209,9 +209,9 @@ def send_direction(obj_name):
                                                     objective_point[1] - objs_dict[nearest_obj]["last_long"]]
 
             Db_data_model.query.filter_by(name=nearest_obj, msg_type="new_direction").delete()
-            mutex.acquire()
-            db.session.commit()
-            mutex.release()
+            with mutex:
+                db.session.commit()
+            
             data = Db_data_model(name=nearest_obj,
                                 msg_type='new_direction',
                                 device_type=objs_dict[nearest_obj]['color'],
@@ -221,11 +221,9 @@ def send_direction(obj_name):
                                 battery = "",
                                 ai_result_file = "",
                                 ai_result_ack = "")
-            mutex.acquire()
-            db.session.add(data)
-            db.session.commit()
-            mutex.release()
-
+            with mutex:
+                db.session.add(data)
+                db.session.commit()
             time_direction_calc = time.time()
 
            
@@ -301,51 +299,56 @@ def update_load():
 @app.context_processor
 def create_map():
     global mutex
+    global flag_match
+    global detected_img_istance
     with mutex:
         df = pd.read_sql(Db_data_model.query.statement, Db_data_model.query.session.bind)
 
-        telemetry_data = df[df['msg_type']=='telemetry']
-        map = folium.Map(location=telemetry_data[['gps_lat', 'gps_long']].mean().values, zoom_start=13)
-        folium.plugins.HeatMap(telemetry_data[['gps_lat', 'gps_long']].values).add_to(map)
+    telemetry_data = df[df['msg_type']=='telemetry']
+    map = folium.Map(location=telemetry_data[['gps_lat', 'gps_long']].mean().values, zoom_start=14)
+    folium.plugins.HeatMap(telemetry_data[['gps_lat', 'gps_long']].values).add_to(map)
 
-        # ML_df = df[df['msg_type'] == 'ai_result']
-        # ML_df = ML_df[ML_df['ai_result_ack'] == 'True']
-        # for i in range(0, len(ML_df)):
-        #     folium.Marker(
-        #         location=[ML_df.iloc[i]['gps_lat'], ML_df.iloc[i]['gps_long']],
-        #         popup=ML_df.iloc[i]['name'],
-        #     ).add_to(map)
+    if flag_match == True:
+        folium.Marker(
+            location=[detected_img_istance['gps']['lat'], detected_img_istance['gps']['long']],
+            popup=detected_img_istance['name'],
+            icon=folium.Icon(icon="glyphicon glyphicon-ok", color='black')
+        ).add_to(map)
+        Db_data_model.query.filter_by(msg_type="new_direction").delete()
 
-        # direction_df = df[df['msg_type'] == 'new_direction']
-        # for i in range(0, len(direction_df)):
-        #     folium.Marker(
-        #         location=[direction_df.iloc[i]['gps_lat'], direction_df.iloc[i]['gps_long']],
-        #         popup=direction_df.iloc[i]['name'],
-        #         icon=folium.Icon(icon="glyphicon glyphicon-search", color='black', icon_color=direction_df.iloc[i]['device_type'])
-        #     ).add_to(map)
+        with mutex:
+            db.session.commit()
+            
+    else:
+        direction_df = df[df['msg_type'] == 'new_direction']
+        for i in range(0, len(direction_df)):
+            folium.Marker(
+                location=[direction_df.iloc[i]['gps_lat'], direction_df.iloc[i]['gps_long']],
+                popup=direction_df.iloc[i]['name'],
+                icon=folium.Icon(icon="glyphicon glyphicon-search", color='black', icon_color=direction_df.iloc[i]['device_type'])
+            ).add_to(map)
 
-        new_map_name = "map" + str(time.time()) + ".html"
-        map.save('static/' + new_map_name)
+    new_map_name = "map" + str(time.time()) + ".html"
+    map.save('static/' + new_map_name)
 
-        global image_used
-        global image_id
-        if image_id>2:
-            image_used.pop(1)
-        image_used.append(new_map_name)
-        image_id+=1
+    global image_used
+    global image_id
+    if image_id>2:
+        image_used.pop(1)
+    image_used.append(new_map_name)
+    image_id+=1
 
-        for filename in os.listdir('static/'):
-            if (filename.startswith('map') and filename not in image_used):
-                #print('static/' + filename)
-                os.remove('static/' + filename)
+    for filename in os.listdir('static/'):
+        if (filename.startswith('map') and filename not in image_used):
+            #print('static/' + filename)
+            os.remove('static/' + filename)
 
-    #--------updating img----------
-        global detected_img_istance
-        filename_img = 'static/predicted_imgs/positive/example.jpg'
-        if detected_img_istance != None:
-            filename_img = 'static/predicted_imgs/positive/'+str(detected_img_istance['imgname'])+'.jpg'
+#--------updating img----------
+    filename_img = 'static/predicted_imgs/positive/example.jpg'
+    if detected_img_istance != None:
+        filename_img = 'static/predicted_imgs/positive/'+str(detected_img_istance['imgname'])+'.jpg'
 
-        return {'map_name': new_map_name, 'file_name': filename_img}
+    return {'map_name': new_map_name, 'file_name': filename_img}
 
 
 #______________________________route to stop icon error_______________

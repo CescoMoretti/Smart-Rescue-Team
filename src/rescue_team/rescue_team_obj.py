@@ -75,7 +75,7 @@ class Rescue_team_obj:
         print("receved direction: " + str(obtained_direction.json()))
         self.movement_param["direction"]= obtained_direction.json()["direction"]
         self.movement_param["step_lenght"]= obtained_direction.json()["step_lenght"]
-        time.sleep(5)
+        time.sleep(8)
         
 
     def read_coordinates(self):
